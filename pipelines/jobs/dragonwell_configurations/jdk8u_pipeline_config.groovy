@@ -44,9 +44,6 @@ class Config8 {
                             openj9    : 'win2012&&mingw-cygwin',
                             dragonwell: 'win2012&vs2013'
                     ],
-                    buildArgs           : [
-                            dragonwell: '--with-boot-jdk /cygdrive/c/Jenkins/j2sdk-image/'
-                    ],
                     test                : 'default'
             ],
 
