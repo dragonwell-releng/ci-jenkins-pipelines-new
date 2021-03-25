@@ -46,7 +46,8 @@ class Config11 {
                             dragonwell: 'win2012'
                     ],
                     buildArgs           : [
-                            hotspot: '--jvm-variant client,server'
+                            hotspot: '--jvm-variant client,server',
+                            dragonwell : '--jdk-boot-dir  /cygdrive/c/Jenkins/jdk11/'
                     ],
                     test                : 'default'
             ],
@@ -179,7 +180,7 @@ class Config11 {
                     arch       : 'x64',
                     dockerImage: 'adoptopenjdk/alpine3_build_image',
                     dockerFile : [
-                            openj9: 'pipelines/build/dockerFiles/alpine_dragonwell.dockerfile'
+                            dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell.dockerfile'
                     ],
                     test       : [
                             // TODO: enable tests
