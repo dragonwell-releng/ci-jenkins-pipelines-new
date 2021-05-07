@@ -27,7 +27,10 @@ class Config11 {
                     dockerFile   : [
                             openj9: 'pipelines/build/dockerFiles/cuda.dockerfile'
                     ],
-                    test         : 'default',
+                    test                : [
+                            nightly: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.openjdk'],
+                            release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.openjdk']
+                    ],
                     configureArgs: [
                             "openj9"    : '--enable-jitserver --enable-dtrace=auto',
                             "hotspot"   : '--enable-dtrace=auto',
