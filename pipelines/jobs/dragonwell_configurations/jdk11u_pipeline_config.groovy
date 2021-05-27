@@ -127,7 +127,11 @@ class Config11 {
                     os           : 'linux',
                     arch         : 'aarch64',
                     dockerImage  : 'joeylee97/dragonwell_centos7_gcc9_build_image',
-                    test         : 'default',
+                    test                 : [
+                            // TODO: enable tests
+                            nightly: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.openjdk'],
+                            release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.openjdk']
+                    ],
                     configureArgs: [
                             "hotspot"   : '--enable-dtrace=auto',
                             "openj9"    : '--enable-dtrace=auto',
