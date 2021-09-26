@@ -7,9 +7,6 @@ targetConfigurations = [
         ],
         "aarch64Linux": [
                 "dragonwell"
-        ],
-        "riscv64Linux": [
-                "dragonwell"
         ]
 ]
 
