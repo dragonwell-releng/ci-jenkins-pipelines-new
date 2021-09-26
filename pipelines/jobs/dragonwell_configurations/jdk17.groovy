@@ -7,6 +7,9 @@ targetConfigurations = [
         ],
         "aarch64Linux": [
                 "dragonwell"
+        ],
+        "x64AlpineLinux": [
+                "dragonwell"
         ]
 ]
 
@@ -17,7 +20,7 @@ triggerSchedule_weekly="TZ=UTC\n05 12 * * 7"
 
 // scmReferences to use for weekly release build
 weekly_release_scmReferences=[
-        "dragonwell"        : "",
+        "hotspot"        : "",
         "openj9"         : "",
         "corretto"       : "",
         "dragonwell"     : ""
