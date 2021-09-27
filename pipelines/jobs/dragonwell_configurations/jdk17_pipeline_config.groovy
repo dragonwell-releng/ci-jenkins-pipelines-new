@@ -155,7 +155,7 @@ class Config17 {
         aarch64Linux    : [
                 os                  : 'linux',
                 arch                : 'aarch64',
-                dockerImage         : 'adoptopenjdk/centos6_build_image',
+                dockerImage         : 'adoptopenjdk/centos7_build_image',
                 test                : 'default',
                 configureArgs       : '--enable-dtrace'
         ],
