@@ -57,6 +57,9 @@ class Config17 {
                 os                  : 'alpine-linux',
                 arch                : 'x64',
                 dockerImage         : 'adoptopenjdk/alpine3_build_image',
+                dockerFile : [
+                        dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell17.dockerfile'
+                ],
                 test                : [
                         // TODO: enable tests
                         nightly: [],
