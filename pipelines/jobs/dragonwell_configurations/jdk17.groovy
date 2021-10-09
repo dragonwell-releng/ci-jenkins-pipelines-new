@@ -9,7 +9,8 @@ targetConfigurations = [
                 "dragonwell"
         ],
         "x64AlpineLinux": [
-                "dragonwell"
+                "dragonwell",
+                "hotspot"
         ]
 ]
 
