@@ -57,6 +57,8 @@ class Config17 {
                 os                  : 'alpine-linux',
                 arch                : 'x64',
                 dockerImage         : 'adoptopenjdk/alpine3_build_image',
+                buildArgs: '--skip-freetype',
+                configureArgs: '--enable-headless-only=yes',
                 dockerFile : [
                         dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell17.dockerfile'
                 ],
@@ -71,7 +73,8 @@ class Config17 {
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',
-                additionalNodeLabels: 'win2012&&vs2017',
+                additionalNodeLabels: 'win2012&&vs2019',
+                buildArgs: '--jdk-boot-dir /cygdrive/c/Jenkins/workspace/zulu17/ -b fixpath',
                 test                : 'default'
         ],
 
