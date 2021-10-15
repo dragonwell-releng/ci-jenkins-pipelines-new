@@ -74,7 +74,7 @@ class Config17 {
                 os                  : 'windows',
                 arch                : 'x64',
                 additionalNodeLabels: 'win2012&&vs2019',
-                buildArgs: '--jdk-boot-dir /cygdrive/c/Jenkins/workspace/zulu17/ -b fixpath',
+                buildArgs: '--jdk-boot-dir /cygdrive/c/Jenkins/workspace/zulu17/',
                 test                : 'default'
         ],
 
