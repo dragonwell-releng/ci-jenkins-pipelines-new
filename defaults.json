@@ -54,5 +54,5 @@
         }
     },
     "importLibraryScript"    : "pipelines/build/common/import_lib.groovy",
-    "defaultsUrl"            : "http://ci.dragonwell-jdk.io/userContent/config/defaults.json"
+    "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines/master/defaults.json"
 }
