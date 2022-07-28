@@ -994,7 +994,8 @@ class Builder implements Serializable {
                                                         target: "target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/",
                                                         flatten: true
                                                 )
-                                                context.copyArtifacts(
+                                                if (enableTests)
+                                                    context.copyArtifacts(
                                                         projectName: downstreamJobName,
                                                         selector: context.specific("${downstreamJob.getNumber()}"),
                                                         filter: 'workspace/target/AQAvitTaps/*.tap',
