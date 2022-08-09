@@ -58,7 +58,6 @@
             "extended.openjdk",
             "extended.perf",
             "special.functional",
-            "special.openjdk",
             "dev.functional"
         ],
         "releaseDefault"     : [
