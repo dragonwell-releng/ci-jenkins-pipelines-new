@@ -994,6 +994,12 @@ class Builder implements Serializable {
                                                         target: "target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/",
                                                         flatten: true
                                                 )
+                                            }
+                                        } catch (FlowInterruptedException e) {
+                                            throw new Exception("[ERROR] Copy artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting...")
+                                        }
+                                        try {
+                                            context.timeout(time: pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT, unit: "HOURS") {
                                                 if (enableTests)
                                                     context.copyArtifacts(
                                                         projectName: downstreamJobName,
@@ -1006,7 +1012,7 @@ class Builder implements Serializable {
                                                 )
                                             }
                                         } catch (FlowInterruptedException e) {
-                                            throw new Exception("[ERROR] Copy artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting...")
+                                            println "[ERROR] Copy tap artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting..."
                                         }
                                         // Checksum
                                         context.sh 'for file in $(ls target/*/*/*/*.tar.gz target/*/*/*/*.zip); do sha256sum "$file" > $file.sha256.txt ; done'
