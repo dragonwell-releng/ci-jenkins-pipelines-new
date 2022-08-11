@@ -28,8 +28,8 @@ class Config11 {
                             openj9: 'pipelines/build/dockerFiles/cuda.dockerfile'
                     ],
                     test                : [
-                            nightly: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external'],
-                            release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external']
+                            nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
+                            release: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf']
                     ],
                     configureArgs: [
                             "openj9"    : '--enable-jitserver --enable-dtrace=auto',
@@ -52,7 +52,11 @@ class Config11 {
                             hotspot: '--jvm-variant client,server',
                             dragonwell : '--jdk-boot-dir  /cygdrive/c/Jenkins/jdk11/'
                     ],
-                    test                : 'default'
+                    test                : [
+                            nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
+                            release: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf']
+                    ]
+                    //test                : 'default'
             ],
 
             x64WindowsXL  : [
@@ -129,8 +133,8 @@ class Config11 {
                     dockerImage  : 'joeylee97/dragonwell_centos7_gcc9_build_image',
                     test                 : [
                             // TODO: enable tests
-                            nightly: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external'],
-                            release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external']
+                            nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
+                            release: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
                     ],
                     configureArgs: [
                             "hotspot"   : '--enable-dtrace=auto',
