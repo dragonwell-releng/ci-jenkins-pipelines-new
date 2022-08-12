@@ -1012,7 +1012,7 @@ class Builder implements Serializable {
                                                 )
                                             }
                                         } catch (FlowInterruptedException e) {
-                                            println "[ERROR] Copy tap artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting..."
+                                            println "[Warning] Copy tap artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting..."
                                         }
                                         // Checksum
                                         context.sh 'for file in $(ls target/*/*/*/*.tar.gz target/*/*/*/*.zip); do sha256sum "$file" > $file.sha256.txt ; done'
