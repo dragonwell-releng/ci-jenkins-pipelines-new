@@ -312,6 +312,11 @@ class Build {
             sdkUrl += " ${env.BUILD_URL}/artifact/workspace/target/${testImageName}"
         }
 
+        def testFlag = ''
+        if (buildConfig.VARIANT == 'dragonwell' && buildConfig.BUILD_ARGS?.contains('standard')) {
+            testFlag = 'Dragonwell_Standard'
+        }
+
         // If SBOM created then need to pass to aqa-tests for special.system reproducible verification test
         if (buildConfig.BUILD_ARGS?.contains('--create-sbom')) {
             def sbomName = jdkFileName.replace('-jdk_', '-sbom_')
@@ -350,6 +355,7 @@ class Build {
                     context.string(name: 'BUILD_TYPE', value: "${build_type}"),
                     context.string(name: 'VARIANT', value: "${buildConfig.VARIANT}"),
                     context.string(name: 'PLATFORMS', value: "${jobParams.ARCH_OS_LIST}"),
+                    context.string(name: 'TEST_FLAG', value: testFlag),
                     context.string(name: 'PIPELINE_DISPLAY_NAME', value: "${displayName}")
                 ],
                 wait: false,
