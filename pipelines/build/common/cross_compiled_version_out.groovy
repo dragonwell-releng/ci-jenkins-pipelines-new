@@ -27,6 +27,7 @@ node(nodeLabel) {
                 String jdkFileFilter = params.JDK_FILE_FILTER ? params.JDK_FILE_FILTER : ''
                 String fileName = params.FILENAME ? params.FILENAME : ''
                 String os = params.OS ? params.OS : ''
+                String arch = sh(returnStdout:true, script: "arch").trim()
 
                 println '[INFO] PARAMS:'
                 println "UPSTREAM_JOB_NAME = ${jobName}"
@@ -34,6 +35,7 @@ node(nodeLabel) {
                 println "JDK_FILE_FILTER = ${jdkFileFilter}"
                 println "FILENAME = ${fileName}"
                 println "OS = ${os}"
+                println "ARCH = ${arch}"
 
                 // Verify any previous binaries and versions have been cleaned out
                 if (fileExists('OpenJDKBinary')) {
@@ -69,28 +71,37 @@ node(nodeLabel) {
                     }
 
                     String jdkDir = sh(
-                        script: 'ls | grep jdk',
+                        script: 'ls | grep dragonwell',
                         returnStdout: true,
                         returnStatus: false
                     ).trim()
 
+                    sh "mv ${jdkDir} jdk"
+                    jdkDir = "jdk"
+
                     // Run java version and save to variable
-                    dir(jdkDir) {
-                        dir('bin') {
-                            println "[INFO] Running java -version on extracted binary ${jdkDir}..."
+                    if (nodeLabel.contains(arch)) {
+                        dir(jdkDir) {
+                            dir('bin') {
+                                println "[INFO] Running java -version on extracted binary ${jdkDir}..."
 
-                            versionOut = sh(
-                                script: './java -version 2>&1',
-                                returnStdout: true,
-                                returnStatus: false
-                            ).trim()
-
-                            if (versionOut == '') {
-                                throw new Exception('[ERROR] Java version was not retrieved or found!')
-                            } else {
-                                println "[INFO] Retrieved version string:\n${versionOut}"
+                                versionOut = sh(
+                                    script: './java -version 2>&1',
+                                    returnStdout: true,
+                                    returnStatus: false
+                                ).trim()
                             }
                         }
+                    } else {
+                        println "[INFO] Running java -version on docker..."
+                        def pwd = sh(returnStdout: true, script: "pwd").trim()
+                        versionOut = sh(returnStdout: true, script: "sudo docker run --tty --network host -v ${pwd}/${jdkDir}:/root/jdk alibabadragonwelljdk/riscv-normal-qemu_6.0.0-rvv-1.0:latest /bin/bash -c '/root/jdk/bin/java -version'").trim()
+                    }
+
+                    if (versionOut == '') {
+                        throw new Exception('[ERROR] Java version was not retrieved or found!')
+                    } else {
+                        println "[INFO] Retrieved version string:\n${versionOut}"
                     }
                 }
 
