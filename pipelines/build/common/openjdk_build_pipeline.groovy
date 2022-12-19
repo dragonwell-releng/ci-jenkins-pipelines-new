@@ -785,7 +785,8 @@ def aqaAutoGen = Boolean.valueOf(buildConfig.AQA_AUTO_GEN as String)
             def params = [
                   context.string(name: 'UPSTREAM_JOB_NUMBER', value: "${env.BUILD_NUMBER}"),
                   context.string(name: 'UPSTREAM_JOB_NAME', value: "${env.JOB_NAME}"),
-                  context.string(name: 'UPSTREAM_DIR', value: 'workspace/target')
+                  context.string(name: 'UPSTREAM_DIR', value: 'workspace/target'),
+                  context.string(name: 'NODE_LABEL', value: 'gpgsign')
            ]
 
             def signSHAsJob = context.build job: 'build-scripts/release/sign_temurin_gpg',
@@ -2342,10 +2343,12 @@ def buildScriptsAssemble(
                         throw new Exception("[ERROR] Installer job timeout (${buildTimeouts.INSTALLER_JOBS_TIMEOUT} HOURS) has been reached OR the downstream installer job failed. Exiting...")
                     }
                 }
-                if (!env.JOB_NAME.contains('pr-tester') && buildConfig.VARIANT == 'temurin' && enableSigner) {
+                if (!env.JOB_NAME.contains('pr-tester') &&
+                        (buildConfig.VARIANT == 'temurin' || buildConfig.VARIANT == 'dragonwell') &&
+                        enableSigner) {
                     try {
                         context.println "openjdk_build_pipeline: Running GPG signing process"
-                        if (buildConfig.BUILD_ARGS.contains('--create-sbom')) {
+                        if (buildConfig.VARIANT == 'temurin' && buildConfig.BUILD_ARGS.contains('--create-sbom')) {
                             jsfSignSBOM()
                         }
                         gpgSign()
