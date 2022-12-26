@@ -32,6 +32,9 @@ class Config8 {
                     configureArgs: [
                             "openj9"    : '--enable-jitserver',
                             "dragonwell": '--enable-unlimited-crypto --with-jvm-variants=server  --with-zlib=system',
+                    ],
+                    buildArgs           : [
+                        'dragonwell'   : '--create-sbom'
                     ]
             ],
 
@@ -43,6 +46,9 @@ class Config8 {
                             corretto  : 'win2012',
                             openj9    : 'win2012&&mingw-cygwin',
                             dragonwell: 'win2012&vs2013'
+                    ],
+                    buildArgs           : [
+                        'dragonwell'   : '--create-sbom'
                     ],
                     test                : 'default'
             ],
@@ -121,6 +127,9 @@ class Config8 {
                     dockerImage: 'adoptopenjdk/centos7_build_image',
                     dockerFile : [
                             dragonwell: 'pipelines/build/dockerFiles/dragonwell_aarch64.dockerfile'
+                    ],
+                    buildArgs  : [
+                        'dragonwell'   : '--create-sbom'
                     ],
                     test       : 'default'
             ],
