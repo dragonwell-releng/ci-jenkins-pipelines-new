@@ -37,6 +37,9 @@ class Config11 {
                             "corretto"  : '--enable-dtrace=auto',
                             "SapMachine": '--enable-dtrace=auto',
                             "dragonwell": '--enable-dtrace=auto --enable-unlimited-crypto --with-jvm-variants=server --with-zlib=system --with-jvm-features=zgc,shenandoahgc'
+                    ],
+                    buildArgs: [
+                            dragonwell: '--create-sbom'
                     ]
             ],
 
@@ -50,7 +53,7 @@ class Config11 {
                     ],
                     buildArgs           : [
                             hotspot: '--jvm-variant client,server',
-                            dragonwell : '--jdk-boot-dir  /cygdrive/c/Jenkins/jdk11/'
+                            dragonwell : '--jdk-boot-dir  /cygdrive/c/Jenkins/jdk11/ --create-sbom'
                     ],
                     test                : [
                             nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
@@ -141,6 +144,9 @@ class Config11 {
                             "openj9"    : '--enable-dtrace=auto',
                             "corretto"  : '--enable-dtrace=auto',
                             "dragonwell": "--enable-dtrace=auto --with-extra-cflags=\"-march=armv8.2-a+crypto\" --with-extra-cxxflags=\"-march=armv8.2-a+crypto\""
+                    ],
+                    buildArgs: [
+                            dragonwell: '--create-sbom'
                     ]
             ],
 
@@ -183,7 +189,7 @@ class Config11 {
                     dockerImage  : 'adoptopenjdk/centos6_build_image',
                     arch         : 'riscv64',
                     crossCompile : 'x64',
-                    buildArgs    : '--cross-compile',
+                    buildArgs    : '--cross-compile --create-sbom',
                     configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root'
             ],
             x64AlpineLinux: [

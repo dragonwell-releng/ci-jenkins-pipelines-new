@@ -35,6 +35,9 @@ class Config17 {
                 configureArgs       : [
                         "openj9"    : '--enable-dtrace --enable-jitserver',
                         "hotspot"   : '--enable-dtrace'
+                ],
+                buildArgs: [
+                        dragonwell: '--create-sbom'
                 ]
         ],
 
@@ -57,7 +60,7 @@ class Config17 {
                 os                  : 'alpine-linux',
                 arch                : 'x64',
                 dockerImage         : 'adoptopenjdk/alpine3_build_image',
-                buildArgs: '--skip-freetype',
+                buildArgs: '--skip-freetype --create-sbom',
                 configureArgs: '--enable-headless-only=yes',
                 dockerFile : [
                         dragonwell: 'pipelines/build/dockerFiles/alpine_dragonwell17.dockerfile'
@@ -74,7 +77,7 @@ class Config17 {
                 os                  : 'windows',
                 arch                : 'x64',
                 additionalNodeLabels: 'win2012&&vs2019',
-                buildArgs: '--jdk-boot-dir /cygdrive/c/Jenkins/workspace/zulu17/',
+                buildArgs: '--jdk-boot-dir /cygdrive/c/Jenkins/workspace/zulu17/ --create-sbom',
                 test                : 'default'
         ],
 
@@ -126,7 +129,10 @@ class Config17 {
                 os                  : 'linux',
                 arch                : 's390x',
                 test                : 'default',
-                configureArgs       : '--enable-dtrace'
+                configureArgs       : '--enable-dtrace',
+                buildArgs           : [
+                        dragonwell: '--create-sbom'
+                ]
         ],
 
         s390xLinuxXL  : [
