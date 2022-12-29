@@ -186,11 +186,13 @@ class Config11 {
             ],
             riscv64Linux  : [
                     os           : 'linux',
-                    dockerImage  : 'adoptopenjdk/centos6_build_image',
+                    dockerImage  : 'alibabadragonwelljdk/centos7_gcc7_build_image',
                     arch         : 'riscv64',
                     crossCompile : 'x64',
-                    buildArgs    : '--cross-compile --create-sbom',
-                    configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root'
+                    configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root',
+                    buildArgs: [
+                            dragonwell: '--create-sbom --cross-compile'
+                    ]
             ],
             x64AlpineLinux: [
                     os         : 'alpine-linux',
