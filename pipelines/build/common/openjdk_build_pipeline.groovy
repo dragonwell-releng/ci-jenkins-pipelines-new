@@ -782,9 +782,11 @@ def aqaAutoGen = Boolean.valueOf(buildConfig.AQA_AUTO_GEN as String)
         context.stage('GPG sign') {
             context.println "RUNNING sign_temurin_gpg for ${buildConfig.TARGET_OS}/${buildConfig.ARCHITECTURE} ..."
 
+            def filter = buildConfig.TARGET_OS == "windows" ? "**/*.zip" : "**/*.tar.gz"
             def params = [
                   context.string(name: 'UPSTREAM_JOB_NUMBER', value: "${env.BUILD_NUMBER}"),
                   context.string(name: 'UPSTREAM_JOB_NAME', value: "${env.JOB_NAME}"),
+                  context.string(name: 'JDK_FILE_FILTER', value: filter),
                   context.string(name: 'UPSTREAM_DIR', value: 'workspace/target'),
                   context.string(name: 'NODE_LABEL', value: 'gpgsign')
            ]

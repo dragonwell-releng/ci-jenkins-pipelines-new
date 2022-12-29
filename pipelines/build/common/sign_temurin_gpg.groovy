@@ -10,7 +10,7 @@ node(nodeLabel) {
                 String jobName = params.UPSTREAM_JOB_NAME ? params.UPSTREAM_JOB_NAME : ''
                 String jobNumber = params.UPSTREAM_JOB_NUMBER ? params.UPSTREAM_JOB_NUMBER : ''
                 String upstreamDir = params.UPSTREAM_DIR ? params.UPSTREAM_DIR : ''
-                String jdkFileFilter = '**/*.tar.gz'
+                String jdkFileFilter = params.JDK_FILE_FILTER ? params.JDK_FILE_FILTER : '**/*.tar.gz'
 
                 println '[INFO] PARAMS:'
                 println "UPSTREAM_JOB_NAME = ${jobName}"
