@@ -192,6 +192,10 @@ class Config11 {
                     configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root',
                     buildArgs: [
                             dragonwell: '--create-sbom --cross-compile'
+                    ],
+                    test: [
+                            nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
+                            release: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf']
                     ]
             ],
             x64AlpineLinux: [
