@@ -206,7 +206,10 @@ class Config11 {
                             nightly: [],
                             // release: ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.external', 'special.functional']
                             release: []
-                    ]
+                    ],
+                    buildArgs           : [
+                     'dragonwell'   : '--create-sbom'
+                ]
             ],
     ]
 
