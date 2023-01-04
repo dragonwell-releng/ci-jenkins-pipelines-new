@@ -76,9 +76,6 @@ node(nodeLabel) {
                         returnStatus: false
                     ).trim()
 
-                    sh "mv ${jdkDir} jdk"
-                    jdkDir = "jdk"
-
                     // Run java version and save to variable
                     if (nodeLabel.contains(arch)) {
                         dir(jdkDir) {
@@ -94,8 +91,21 @@ node(nodeLabel) {
                         }
                     } else {
                         println "[INFO] Running java -version on docker..."
-                        def pwd = sh(returnStdout: true, script: "pwd").trim()
-                        versionOut = sh(returnStdout: true, script: "sudo docker run --tty --network host -v ${pwd}/${jdkDir}:/root/jdk alibabadragonwelljdk/riscv-normal-qemu_6.0.0-rvv-1.0:latest /bin/bash -c '/root/jdk/bin/java -version'").trim()
+                        def dockerImage = ""
+                        if (nodeLabel.contains("riscv64")) {
+                            dockerImage = "alibabadragonwelljdk/riscv-normal-qemu_6.0.0-rvv-1.0:latest"
+                        }
+                        docker.image(dockerImage).inside("--tty --network host") {
+                            dir(jdkDir) {
+                                dir("bin") {
+                                    versionOut = sh(
+                                       script: './java -version 2>&1',
+                                       returnStdout: true,
+                                       returnStatus: false
+                                    ).trim()
+                                }
+                            }
+                        }
                     }
 
                     if (versionOut == '') {
