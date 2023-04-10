@@ -17,6 +17,12 @@ import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
 // TODO: ADD THE ACTIVE NODE TIMEOUT LOGIC HERE OR GET IT MERGED INTO JOB HELPER (https://github.com/adoptium/temurin-build/issues/2235)
 String nodeLabel = (params.NODE) ?: ''
 
+def originNodeLabel = nodeLabel
+if (nodeLabel.contains('&&riscv64')) {
+    nodeLabel = nodeLabel.minus('&&riscv64')
+    nodeLabel += "&&sw.tool.docker"
+}
+
 node(nodeLabel) {
     timestamps {
         try {
@@ -92,7 +98,7 @@ node(nodeLabel) {
                     } else {
                         println "[INFO] Running java -version on docker..."
                         def dockerImage = ""
-                        if (nodeLabel.contains("riscv64")) {
+                        if (originNodeLabel.contains("riscv64")) {
                             dockerImage = "alibabadragonwelljdk/riscv-normal-qemu_6.0.0-rvv-1.0:latest"
                         }
                         docker.image(dockerImage).inside("--tty --network host") {
