@@ -165,6 +165,10 @@ class Builder implements Serializable {
             // Platform override specified
             cleanWsAfter = platformCleanWorkspaceAfterBuild
         }
+            
+        if ("${platformConfig.arch}".contains('riscv64')) {
+            additionalNodeLabels = "${additionalNodeLabels}&&riscv64build"
+        }
 
         // We need to ensure that _adopt is stripped from any tags used in hotspot variant builds, as *_adopt tags do not exist upstream.
         def adjustedScmReference = scmReference
