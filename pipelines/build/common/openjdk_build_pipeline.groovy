@@ -345,9 +345,7 @@ class Build {
             
             def displayName = "jdk${jobParams.JDK_VERSIONS} : ${buildConfig.SCM_REF}${releaseAppendix} : ${jobParams.ARCH_OS_LIST}"
             context.echo " Temurin AQA_Test_Pipeline${releaseAppendix} job : ${displayName}"                                    
-            def aqaJob = context.build job: "${aqaTestPipelineJobName}",
-                propagate: false,
-                parameters: [
+            def aqaTestParams = [
                     context.string(name: 'SDK_RESOURCE', value: 'customized'),
                     context.string(name: 'CUSTOMIZED_SDK_URL', value: "${sdkUrl}"),
                     context.string(name: 'ADOPTOPENJDK_BRANCH', value: "${aqaBranch}"),
@@ -357,7 +355,13 @@ class Build {
                     context.string(name: 'PLATFORMS', value: "${jobParams.ARCH_OS_LIST}"),
                     context.string(name: 'TEST_FLAG', value: testFlag),
                     context.string(name: 'PIPELINE_DISPLAY_NAME', value: "${displayName}")
-                ],
+            ]
+            if (buildConfig.ARCHITECTURE == 'riscv64') {
+                aqaTestParams.add(context.string(name: 'TIME_LIMIT', value: '48'))
+            }
+            def aqaJob = context.build job: "${aqaTestPipelineJobName}",
+                propagate: false,
+                parameters: aqaTestParams,
                 wait: false,
                 waitForStart: true
             if (aqaJob?.absoluteUrl && aqaJob?.number) {
