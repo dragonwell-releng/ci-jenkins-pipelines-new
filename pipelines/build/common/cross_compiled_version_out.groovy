@@ -20,7 +20,7 @@ String nodeLabel = (params.NODE) ?: ''
 def originNodeLabel = nodeLabel
 if (nodeLabel.contains('&&riscv64')) {
     nodeLabel = nodeLabel.minus('&&riscv64')
-    nodeLabel += "&&sw.tool.docker"
+    nodeLabel += "&&sw.tool.docker&&hw.arch.x86"
 }
 
 node(nodeLabel) {
@@ -100,6 +100,8 @@ node(nodeLabel) {
                         def dockerImage = ""
                         if (originNodeLabel.contains("riscv64")) {
                             dockerImage = "alibabadragonwelljdk/riscv-normal-qemu_6.0.0-rvv-1.0:latest"
+                            docker.image('multiarch/qemu-user-static').pull()
+                            sh "docker run --rm --privileged multiarch/qemu-user-static --reset -p yes"
                         }
                         docker.image(dockerImage).inside("--tty --network host") {
                             dir(jdkDir) {
