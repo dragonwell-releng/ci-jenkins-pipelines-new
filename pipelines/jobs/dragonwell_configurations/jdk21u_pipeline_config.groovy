@@ -37,7 +37,8 @@ class Config21 {
                         'temurin'   : '--enable-dtrace'
                 ],
                 buildArgs           : [
-                        'temurin'   : '--create-source-archive --create-jre-image --create-sbom'
+                        'temurin'   : '--create-source-archive --create-jre-image --create-sbom',
+                        'dragonwell' : '--create-sbom'
                 ]
         ],
 
@@ -48,7 +49,8 @@ class Config21 {
                 test                : 'default',
                 configureArgs       : '--enable-headless-only=yes',
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom'
+                        'temurin'   : '--create-jre-image --create-sbom',
+                     'dragonwell'   : '--create-sbom'
                 ]
         ],
 
@@ -73,7 +75,8 @@ class Config21 {
                 ],
                 configureArgs       : "--with-ucrt-dll-dir='C:/progra~2/wi3cf2~1/10/Redist/10.0.22621.0/ucrt/DLLs/x64'",
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom'
+                        'temurin'   : '--create-jre-image --create-sbom',
+                     'dragonwell'   : '--create-sbom'
                 ]
         ],
 
@@ -133,7 +136,8 @@ class Config21 {
                 ],
                 configureArgs : '--enable-dtrace',
                 buildArgs           : [
-                        'temurin'   : '--create-jre-image --create-sbom'
+                        'temurin'   : '--create-jre-image --create-sbom',
+                     'dragonwell'   : '--create-sbom'
                 ]
         ],
 
