@@ -2206,6 +2206,9 @@ def buildScriptsAssemble(
                             } else {
                                 dockerImageDigest = dockerImageDigest.replaceAll("\\[", "").replaceAll("\\]", "")
                                 String dockerRunArg="-e \"BUILDIMAGESHA=$dockerImageDigest\" --init"
+                                if (buildConfig.TARGET_OS != 'windows') {
+                                    dockerRunArg += " -e HTTPS_PROXY= -e https_proxy= -e HTTP_PROXY= -e http_proxy="
+                                }
 
                                 // Are we running podman in Docker CLI Emulation mode?
                                 def isPodman = context.sh(script: "docker --version | grep podman", returnStatus:true)
