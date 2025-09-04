@@ -2236,6 +2236,17 @@ def buildScriptsAssemble(
                                 } else {
                                     context.println "openjdk_build_pipeline: running initial build in docker on non-windows with image " + docker_image_target
                                     context.docker.image(docker_image_target).inside(buildConfig.DOCKER_ARGS+" "+dockerRunArg) {
+                                        if (buildConfig.VARIANT == 'dragonwell') {
+                                            context.withCredentials([
+                                                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextpk', accessKeyVariable: 'PKID', secretKeyVariable: 'AIEXTPK'],
+                                                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextsk', accessKeyVariable: 'SKID', secretKeyVariable: 'AIEXTSK']]) {
+                                                context.sh(script: '''
+                                                    set +x
+                                                    printf '%s' "$AIEXTSK" | base64 -d > "$HOME/sk.bin"
+                                                    printf '%s' "$AIEXTPK" | base64 -d > "$HOME/pk.bin"
+                                                ''')
+                                            }
+                                        }
                                         buildScripts(
                                             cleanWorkspace,
                                             cleanWorkspaceAfter,
