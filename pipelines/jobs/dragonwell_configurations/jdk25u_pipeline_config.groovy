@@ -154,14 +154,14 @@ class Config25 {
         riscv64Linux      :  [
                 os                  : 'linux',
                 arch                : 'riscv64',
-                crossCompile        : 'qemustatic',
-                dockerImage         : 'adoptopenjdk/ubuntu2004_build_image:linux-riscv64',
-                dockerArgs          : '--platform linux/riscv64',
-                test                : 'default',
-                configureArgs       : '--enable-headless-only=yes --enable-dtrace',
+                arch                : 'riscv64',
+                dockerImage         : 'alibabadragonwelljdk/centos7_gcc7_build_image',
+                crossCompile        : 'x64',
+                configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root',
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Fedora_28-b00'
-                ]
+                     'dragonwell'   : '--create-sbom --cross-compile'
+                ],
+                test                : 'default',
         ],
 
         aarch64Windows: [
