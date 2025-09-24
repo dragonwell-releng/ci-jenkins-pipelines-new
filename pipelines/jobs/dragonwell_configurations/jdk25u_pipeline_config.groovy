@@ -37,7 +37,7 @@ class Config25 {
                         'dragonwell'   : '--enable-dtrace'
                 ],
                 buildArgs           : [
-                        'dragonwell'   : '--create-source-archive --create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
+                        'dragonwell'   : '--create-source-archive --create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
                 ]
         ],
 
@@ -48,7 +48,7 @@ class Config25 {
                 test                : 'default',
                 configureArgs       : '--enable-headless-only=yes',
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace'
+                        'dragonwell'   : '--create-jre-image --create-sbom'
                 ]
         ],
 
@@ -62,7 +62,7 @@ class Config25 {
                         'dragonwell'   : '--enable-headless-only=yes --with-jobs=4'
                 ],
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace'
+                        'dragonwell'   : '--create-jre-image --create-sbom'
                 ]
         ],
 
@@ -104,7 +104,7 @@ class Config25 {
                 dockerImage         : 'rhel7_build_image',
                 test                : 'default',
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
+                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
                 ]
         ],
 
@@ -119,7 +119,7 @@ class Config25 {
                         'openj9'      : '--enable-dtrace'
                 ],
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
+                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
                 ]
         ],
 
@@ -135,7 +135,7 @@ class Config25 {
                         'temurin'   : '--enable-dtrace --with-jobs=4'
                 ],
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom --enable-sbom-strace --use-adoptium-devkit gcc-14.2.0-Centos7.6.1810-b00'
+                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Centos7.6.1810-b00'
                 ]
         ],
 
