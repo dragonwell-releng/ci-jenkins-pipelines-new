@@ -25,9 +25,7 @@ class Config25 {
                 dockerFile: [
                         openj9      : 'pipelines/build/dockerFiles/cuda.dockerfile'
                 ],
-                test: [
-                        weekly : ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.functional', 'extended.functional', 'extended.openjdk', 'extended.perf', 'special.functional', 'dev.openjdk', 'dev.functional', 'dev.system', 'special.system']
-                ],
+                test                : 'default',
                 additionalTestLabels: [
                         openj9      : '!sw.tool.glibc.2_12',
                         temurin     : '!sw.tool.glibc.2_12'
@@ -73,9 +71,7 @@ class Config25 {
                 dockerRegistry      : 'https://adoptium.azurecr.io',
                 dockerCredential    : 'bbb9fa70-a1de-4853-b564-5f02193329ac',
                 additionalNodeLabels: 'win2022&&vs2022',
-                test: [
-                        weekly : ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.functional', 'extended.functional', 'extended.openjdk', 'extended.perf', 'special.functional', 'special.openjdk', 'dev.functional', 'dev.system', 'special.system']
-                ],
+                test                : 'default',
                 buildArgs           : [
                         'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                 ]
@@ -127,9 +123,7 @@ class Config25 {
                 os                  : 'linux',
                 arch                : 'aarch64',
                 dockerImage         : 'adoptopenjdk/centos7_build_image',
-                test: [
-                        weekly : ['sanity.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'sanity.functional', 'extended.functional', 'extended.openjdk', 'extended.perf', 'special.functional', 'special.openjdk', 'dev.functional', 'special.system']
-                ],
+                test                : 'default',
                 configureArgs       : [
                         'openj9'    : '--enable-dtrace',
                         'temurin'   : '--enable-dtrace --with-jobs=4'
