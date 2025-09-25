@@ -37,7 +37,7 @@ class Config25 {
                         'dragonwell'   : '--enable-dtrace'
                 ],
                 buildArgs           : [
-                        'dragonwell'   : '--create-source-archive --create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Centos7.9.2009-b00'
+                        'dragonwell'   : '--create-source-archive --create-jre-image --create-sbom'
                 ]
         ],
 
