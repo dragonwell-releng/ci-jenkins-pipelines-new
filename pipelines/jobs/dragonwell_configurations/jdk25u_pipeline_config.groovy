@@ -149,9 +149,9 @@ class Config25 {
                 os                  : 'linux',
                 arch                : 'riscv64',
                 arch                : 'riscv64',
-                dockerImage         : 'alibabadragonwelljdk/centos7_gcc7_build_image',
+                dockerImage         : 'alibabadragonwelljdk/centos7_gcc7_build_image:riscv64-gcc14',
                 crossCompile        : 'x64',
-                configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root',
+                configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/riscv_toolchain_gcc14/sysroot/',
                 buildArgs           : [
                      'dragonwell'   : '--create-sbom --cross-compile'
                 ],
