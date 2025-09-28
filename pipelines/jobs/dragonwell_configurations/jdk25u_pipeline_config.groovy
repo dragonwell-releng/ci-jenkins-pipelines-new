@@ -35,7 +35,7 @@ class Config25 {
                         'dragonwell'   : '--enable-dtrace'
                 ],
                 buildArgs           : [
-                        'dragonwell'   : '--create-source-archive --create-jre-image --create-sbom'
+                        'dragonwell'   : '--create-jre-image --create-sbom'
                 ]
         ],
 
