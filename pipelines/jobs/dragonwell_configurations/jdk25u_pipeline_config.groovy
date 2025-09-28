@@ -129,7 +129,7 @@ class Config25 {
                         'temurin'   : '--enable-dtrace --with-jobs=4'
                 ],
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit gcc-14.2.0-Centos7.6.1810-b00'
+                        'dragonwell'   : '--create-jre-image --create-sbom'
                 ]
         ],
 
