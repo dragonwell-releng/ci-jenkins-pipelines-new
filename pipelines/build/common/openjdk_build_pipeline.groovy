@@ -2194,6 +2194,17 @@ def buildScriptsAssemble(
 
                                 context.println "openjdk_build_pipeline: building in docker image from docker file " + buildConfig.DOCKER_FILE
                                 context.docker.build("build-image", "--build-arg image=${docker_image_target} -f ${buildConfig.DOCKER_FILE} .").inside(buildConfig.DOCKER_ARGS) {
+                                    if (buildConfig.VARIANT == 'dragonwell' && buildConfig.TARGET_OS != 'windows') {
+                                        context.withCredentials([
+                                            [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextpk', accessKeyVariable: 'PKID', secretKeyVariable: 'AIEXTPK'],
+                                            [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextsk', accessKeyVariable: 'SKID', secretKeyVariable: 'AIEXTSK']]) {
+                                            context.sh(script: '''
+                                                set +x
+                                                printf '%s' "$AIEXTSK" | base64 -d > "$HOME/sk.bin"
+                                                printf '%s' "$AIEXTPK" | base64 -d > "$HOME/pk.bin"
+                                            ''')
+                                        }
+                                    }
                                     buildScripts(
                                         cleanWorkspace,
                                         cleanWorkspaceAfter,
