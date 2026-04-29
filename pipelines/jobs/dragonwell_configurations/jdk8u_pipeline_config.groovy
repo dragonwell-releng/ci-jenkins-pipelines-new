@@ -45,7 +45,7 @@ class Config8 {
                             hotspot   : 'win2012',
                             corretto  : 'win2012',
                             openj9    : 'win2012&&mingw-cygwin',
-                            dragonwell: 'win2012&vs2013'
+                            dragonwell: 'win2012&&vs2017'
                     ],
                     buildArgs           : [
                         'dragonwell'   : '--create-sbom'
