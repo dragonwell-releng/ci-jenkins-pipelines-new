@@ -70,7 +70,7 @@ class Config25 {
                 dockerImage         : '',
                 dockerRegistry      : '',
                 dockerCredential    : '',
-                additionalNodeLabels: 'win2022&&vs2022',
+                additionalNodeLabels: 'win2025&&vs2022',
                 test                : 'default',
                 buildArgs           : [
                         'dragonwell'   : '--create-jre-image --create-sbom'
