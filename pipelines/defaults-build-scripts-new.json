@@ -1,11 +1,11 @@
 {
     "repository"             : {
-        "build_url"          : "https://github.com/dragonwell-releng/openjdk-build.git",
-        "build_branch"       : "master",
+        "build_url"          : "https://github.com/dragonwell-releng/openjdk-build-new.git",
+        "build_branch"       : "dev/fix-scripts",
         "test_dirs"          : "/test/functional",
         "pipeline_url"       : "https://github.com/dragonwell-releng/ci-jenkins-pipelines-new.git",
         "pipeline_branch"    : "dev/fix-scripts",
-        "helper_ref"         : "master"
+        "helper_ref"         : "upstream"
     },
     "jenkinsDetails"         : {
         "rootUrl"            : "http://ci.dragonwell-jdk.io/",
