@@ -1642,7 +1642,7 @@ def buildScriptsAssemble(
         // Pass actual ADOPT_DEFAULTS_JSON, and optional buildConfig CI and BUILD branch/tag overrides,
         // so that RepoHandler checks out the desired repo correctly
         def repoHandler = new RepoHandler(USER_REMOTE_CONFIGS, ADOPT_DEFAULTS_JSON, buildConfig.CI_REF, buildConfig.BUILD_REF)
-        repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON['defaultsUrl'])
+        repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
         return context.stage('build') {
             context.println 'USER_REMOTE_CONFIGS: '
             context.println JsonOutput.toJson(USER_REMOTE_CONFIGS)
