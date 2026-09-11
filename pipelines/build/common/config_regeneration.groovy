@@ -536,9 +536,6 @@ class Regeneration implements Serializable {
         userRemoteConfigs.remotes = gitRemoteConfigs
         params.put('USER_REMOTE_CONFIGS', JsonOutput.prettyPrint(JsonOutput.toJson(userRemoteConfigs)))
 
-        def repoHandler = new RepoHandler(userRemoteConfigs)
-        repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
-
         params.put('DEFAULTS_JSON', JsonOutput.prettyPrint(JsonOutput.toJson(DEFAULTS_JSON)))
         params.put('ADOPT_DEFAULTS_JSON', JsonOutput.prettyPrint(JsonOutput.toJson(ADOPT_DEFAULTS_JSON)))
 
@@ -571,6 +568,8 @@ class Regeneration implements Serializable {
             create = context.jobDsl targets: jobTemplatePath, ignoreExisting: false, additionalParameters: params
         } catch (Exception e) {
             context.println "[WARNING] Something went wrong when creating the job dsl. It may be because we are trying to pull the template inside a user repository. Using Adopt's template instead. Error:\n${e}"
+            def repoHandler = new RepoHandler(userRemoteConfigs)
+            repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
             repoHandler.checkoutAdoptPipelines(context)
             create = context.jobDsl targets: ADOPT_DEFAULTS_JSON['templateDirectories']['downstream'], ignoreExisting: false, additionalParameters: params
             repoHandler.checkoutUserPipelines(context)
