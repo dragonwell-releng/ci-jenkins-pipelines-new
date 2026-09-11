@@ -122,15 +122,9 @@ class Build {
         this.env = env
     }
 
-    // Workaround to handle different versions of Badge plugin
+    // Use the String-based Badge API, which is compatible with sandbox execution.
     def appendSummaryText(summary, text) {
-        try {
-                def currentText = summary.getText() ?: ""
-                summary.setText(currentText + text)
-        } catch (Exception e) {
-                echo "setText failed, trying deprecated appendText: ${e.message}"
-                summary.appendText(text, false)
-        }
+        summary.appendText(text.toString())
     }
 
     /*
