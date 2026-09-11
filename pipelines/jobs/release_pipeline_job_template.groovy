@@ -9,7 +9,7 @@ Boolean runInstaller = enableInstallers
 Boolean runSigner = enableSigner
 Boolean cleanWorkspaceBeforeBuild = cleanWorkspaceBeforeBuild
 Boolean cleanWorkspaceAfterBuild  = cleanWorkspaceAfterBuild
-Boolean cleanWsBuildOutput = true
+Boolean cleanWsBuildOutput = false
 Boolean isLightweight = false  // since this is to checkout on a releaseTag, better to use false or might not found tag/SHA1 on the tip
 
 folder("${BUILD_FOLDER}")
