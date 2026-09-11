@@ -49,11 +49,11 @@ class Config11 {
                     additionalNodeLabels: [
                             hotspot   : 'win2012',
                             openj9    : 'win2012&&vs2017',
-                            dragonwell: 'win2012&&vs2017'
+                            dragonwell: 'win2022&&vs2022'
                     ],
                     buildArgs           : [
                             hotspot: '--jvm-variant client,server',
-                            dragonwell : '--jdk-boot-dir  /cygdrive/c/Jenkins/jdk11/ --create-sbom'
+                            dragonwell : '--create-sbom'
                     ],
                     test                : [
                             nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
