@@ -24,7 +24,6 @@ pipelineJob("${BUILD_FOLDER}/${JOB_NAME}") {
     disabled(disableJob)
 
     logRotator {
-        numToKeep(60)
         artifactNumToKeep(5)
     }
 

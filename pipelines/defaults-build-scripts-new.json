@@ -45,28 +45,9 @@
             "extended.system",
             "sanity.perf",
             "sanity.functional",
-            "extended.functional",
-            "extended.openjdk"
+            "extended.functional"
         ],
         "weeklyDefault"     : [
-            "sanity.openjdk",
-            "sanity.system",
-            "extended.system",
-            "sanity.perf",
-            "sanity.functional",
-            "extended.functional",
-            "extended.openjdk",
-            "extended.perf",
-            "special.functional",
-            "dev.functional"
-        ],
-        "releaseDefault"     : [
-            "sanity.openjdk",
-            "sanity.system",
-            "extended.system",
-            "sanity.perf",
-            "sanity.functional",
-            "extended.functional",
             "extended.openjdk",
             "extended.perf",
             "special.functional"
@@ -80,8 +61,8 @@
     "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines-new/dev/fix-scripts/pipelines/defaults-build-scripts-new.json",
     "enableInstallers"       : true,
     "enableSigner"           : true,
-    "cleanWorkspaceBeforeBuild" : true,
-    "cleanWorkspaceAfterBuild"  : true,
-    "cleanReleaseWorkspaceBeforeBuild" : true,
-    "cleanReleaseWorkspaceAfterBuild"  : true
+    "cleanWorkspaceBeforeBuild" : false,
+    "cleanWorkspaceAfterBuild"  : false,
+    "cleanReleaseWorkspaceBeforeBuild" : false,
+    "cleanReleaseWorkspaceAfterBuild"  : false
 }
