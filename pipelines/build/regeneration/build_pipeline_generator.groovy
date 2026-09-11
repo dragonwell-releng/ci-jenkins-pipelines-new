@@ -9,7 +9,7 @@ file used as jenkinsfile to generator nightly and weekly pipeline
 node('worker') {
     try {
         // Pull in Adopt defaults
-        String ADOPT_DEFAULTS_FILE_URL = 'http://ci.dragonwell-jdk.io/userContent/config/adoptium-defaults.json'
+        String ADOPT_DEFAULTS_FILE_URL = 'file:///root/.jenkins/userContent/config/adoptium-defaults.json'
         String DRAGONWELL_DEFAULTS_FILE_URL = 'https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines/master/pipelines/defaults.json'
         def getAdopt = new URL(ADOPT_DEFAULTS_FILE_URL).openConnection()
         Map<String, ?> ADOPT_DEFAULTS_JSON = new JsonSlurper().parseText(getAdopt.getInputStream().getText()) as Map
