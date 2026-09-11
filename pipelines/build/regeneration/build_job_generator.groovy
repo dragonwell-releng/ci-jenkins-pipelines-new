@@ -26,10 +26,9 @@ limitations under the License.
 */
 
 String javaVersion = params.JAVA_VERSION
-String ADOPT_DEFAULTS_FILE_URL = 'https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/master/pipelines/defaults.json'
-if (params.REPOSITORY_BRANCH != "") { // mainly for release jobs to use tag
-    ADOPT_DEFAULTS_FILE_URL = "https://raw.githubusercontent.com/adoptium/ci-jenkins-pipelines/${params.REPOSITORY_BRANCH}/pipelines/defaults.json"
-}
+// Keep the Adoptium fallback defaults on the Jenkins controller. Fetching the
+// public raw GitHub URL can be rate-limited before user defaults are read.
+String ADOPT_DEFAULTS_FILE_URL = 'file:///root/.jenkins/userContent/config/adoptium-defaults.json'
 String DEFAULTS_FILE_URL = (params.DEFAULTS_URL) ?: ADOPT_DEFAULTS_FILE_URL
 
 node('worker') {
