@@ -2397,8 +2397,10 @@ def buildScriptsAssemble(
                     }
                 }
 
-                // Validate the SBOM.
-                if (buildConfig.BUILD_ARGS.contains('--create-sbom')) {
+                // SBOM validation is a release quality gate. Keep generating SBOMs for
+                // nightly builds, but do not make the compilation-only nightly path
+                // depend on the external validator job.
+                if (buildConfig.BUILD_ARGS.contains('--create-sbom') && Boolean.valueOf(buildConfig.RELEASE)) {
                     try {
                         if (validateSbom() == 'SUCCESS') {
                             context.println "openjdk_build_pipeline: SBOMs created by this build passed validation."
@@ -2411,7 +2413,7 @@ def buildScriptsAssemble(
                         currentBuild.result = 'FAILURE'
                     }
                 } else {
-                    context.println('openjdk_build_pipeline: Skipping sbom validation because --create-sbom was not found in BUILD_ARGS.')
+                    context.println('openjdk_build_pipeline: Skipping sbom validation for a non-release build or because --create-sbom was not found in BUILD_ARGS.')
                 }
 
                 // Run Smoke Tests and AQA Tests
