@@ -38,7 +38,7 @@
     },
     "testDetails"            : {
         "enableReproducibleCompare" : false,
-        "enableTests"        : false,
+        "enableTests"        : true,
         "nightlyDefault"     : [
             "sanity.openjdk",
             "sanity.system",
@@ -59,9 +59,8 @@
         }
     },
     "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines-new/dev/fix-scripts/pipelines/defaults-build-scripts-new.json",
-    "enableInstallers"       : false,
-    "enableSigner"           : false,
-    "skipSBOMValidation"    : true,
+    "enableInstallers"       : true,
+    "enableSigner"           : true,
     "cleanWorkspaceBeforeBuild" : false,
     "cleanWorkspaceAfterBuild"  : false,
     "cleanReleaseWorkspaceBeforeBuild" : false,
