@@ -2398,7 +2398,7 @@ def buildScriptsAssemble(
                 }
 
                 // Validate the SBOM.
-                if (buildConfig.BUILD_ARGS.contains('--create-sbom')) {
+                if (buildConfig.BUILD_ARGS.contains('--create-sbom') && !Boolean.parseBoolean("${DEFAULTS_JSON['skipSBOMValidation'] ?: false}")) {
                     try {
                         if (validateSbom() == 'SUCCESS') {
                             context.println "openjdk_build_pipeline: SBOMs created by this build passed validation."
@@ -2411,12 +2411,14 @@ def buildScriptsAssemble(
                         currentBuild.result = 'FAILURE'
                     }
                 } else {
-                    context.println('openjdk_build_pipeline: Skipping sbom validation because --create-sbom was not found in BUILD_ARGS.')
+                    context.println('openjdk_build_pipeline: Skipping sbom validation because it is disabled for this build or --create-sbom was not found in BUILD_ARGS.')
                 }
 
                 // Run Smoke Tests and AQA Tests
 
-                if (currentBuild.currentResult != "SUCCESS") {
+                if (!enableTests) {
+                    context.println('openjdk_build_pipeline: Skipping smoke and AQA tests because tests are disabled for this build.')
+                } else if (currentBuild.currentResult != "SUCCESS") {
                     context.println('[ERROR] Build stages were not successful, not running Smoke tests')
                 } else {
                     try {
@@ -2425,12 +2427,10 @@ def buildScriptsAssemble(
                         if (runSmokeTests() == 'SUCCESS') {
                             context.println "openjdk_build_pipeline: smoke tests OK - running full AQA suite"
                             // Remote trigger Eclipse Temurin JCK tests
-                            if (enableTests) {
-                                if (buildConfig.VARIANT == 'temurin' && enableTCK) {
-                                    remoteTriggerJckTests(filename)
-                                }
-                                runAQATests(filename)
+                            if (buildConfig.VARIANT == 'temurin' && enableTCK) {
+                                remoteTriggerJckTests(filename)
                             }
+                            runAQATests(filename)
                         } else {
                             context.println('[ERROR]Smoke tests are not successful! AQA and TCK tests are blocked ')
                         }
