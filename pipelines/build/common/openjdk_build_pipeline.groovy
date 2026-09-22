@@ -2418,7 +2418,9 @@ def buildScriptsAssemble(
 
                 // Run Smoke Tests and AQA Tests
 
-                if (currentBuild.currentResult != "SUCCESS") {
+                if (!enableTests) {
+                    context.println('openjdk_build_pipeline: Skipping smoke tests because enableTests is false.')
+                } else if (currentBuild.currentResult != "SUCCESS") {
                     context.println('[ERROR] Build stages were not successful, not running Smoke tests')
                 } else {
                     try {
@@ -2427,12 +2429,10 @@ def buildScriptsAssemble(
                         if (runSmokeTests() == 'SUCCESS') {
                             context.println "openjdk_build_pipeline: smoke tests OK - running full AQA suite"
                             // Remote trigger Eclipse Temurin JCK tests
-                            if (enableTests) {
-                                if (buildConfig.VARIANT == 'temurin' && enableTCK) {
-                                    remoteTriggerJckTests(filename)
-                                }
-                                runAQATests(filename)
+                            if (buildConfig.VARIANT == 'temurin' && enableTCK) {
+                                remoteTriggerJckTests(filename)
                             }
+                            runAQATests(filename)
                         } else {
                             context.println('[ERROR]Smoke tests are not successful! AQA and TCK tests are blocked ')
                         }
