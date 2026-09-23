@@ -476,7 +476,12 @@ class Regeneration implements Serializable {
                 PLATFORM_CONFIG_LOCATION: platformSpecificConfigPath,
                 CONFIGURE_ARGS: getConfigureArgs(platformConfig, variant),
                 OVERRIDE_FILE_NAME_VERSION: '',
-                USE_ADOPT_SHELL_SCRIPTS: true,
+                // The generated job must default to the same script source as
+                // its defaults JSON.  A user/Dragonwell defaults file must not
+                // silently fall back to Adoptium when this child job is run
+                // directly (or rebuilt): CI_REF can legitimately be a branch
+                // that only exists in the user pipeline repository.
+                USE_ADOPT_SHELL_SCRIPTS: DEFAULTS_JSON['repository']['pipeline_url'] == ADOPT_DEFAULTS_JSON['repository']['pipeline_url'],
                 ADDITIONAL_FILE_NAME_TAG: platformConfig.additionalFileNameTag as String,
                 JDK_BOOT_VERSION: platformConfig.bootJDK as String,
                 RELEASE: false,
