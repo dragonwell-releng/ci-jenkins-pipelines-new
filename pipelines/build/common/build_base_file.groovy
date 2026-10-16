@@ -82,15 +82,9 @@ class Builder implements Serializable {
         PUBLISH_ARTIFACTS_TIMEOUT : 3
     ]
 
-    // Workaround to handle different versions of Badge plugin
+    // Use the String-based Badge API, which is compatible with sandbox execution.
     def appendSummaryText(summary, text) {
-        try {
-                def currentText = summary.getText() ?: ""
-                summary.setText(currentText + text)
-        } catch (Exception e) {
-                echo "setText failed, trying deprecated appendText: ${e.message}"
-                summary.appendText(text, false)
-        }
+        summary.appendText(text.toString())
     }
 
     /*
@@ -164,6 +158,10 @@ class Builder implements Serializable {
         if (platformCleanWorkspaceAfterBuild) {
             // Platform override specified
             cleanWsAfter = platformCleanWorkspaceAfterBuild
+        }
+            
+        if ("${platformConfig.arch}".contains('riscv64')) {
+            additionalNodeLabels = "${additionalNodeLabels}&&riscv64build"
         }
 
         // We need to ensure that _adopt is stripped from any tags used in hotspot variant builds, as *_adopt tags do not exist upstream.
@@ -994,7 +992,14 @@ class Builder implements Serializable {
                                                         target: "target/${config.TARGET_OS}/${config.ARCHITECTURE}/${config.VARIANT}/",
                                                         flatten: true
                                                 )
-                                                context.copyArtifacts(
+                                            }
+                                        } catch (FlowInterruptedException e) {
+                                            throw new Exception("[ERROR] Copy artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting...")
+                                        }
+                                        try {
+                                            context.timeout(time: pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT, unit: "HOURS") {
+                                                if (enableTests)
+                                                    context.copyArtifacts(
                                                         projectName: downstreamJobName,
                                                         selector: context.specific("${downstreamJob.getNumber()}"),
                                                         filter: 'workspace/target/AQAvitTaps/*.tap',
@@ -1005,7 +1010,7 @@ class Builder implements Serializable {
                                                 )
                                             }
                                         } catch (FlowInterruptedException e) {
-                                            throw new Exception("[ERROR] Copy artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting...")
+                                            println "[Warning] Copy tap artifact timeout (${pipelineTimeouts.COPY_ARTIFACTS_TIMEOUT} HOURS) for ${downstreamJobName} has been reached. Exiting..."
                                         }
                                         // Checksum
                                         context.sh 'for file in $(ls target/*/*/*/*.tar.gz target/*/*/*/*.zip); do sha256sum "$file" > $file.sha256.txt ; done'

@@ -476,7 +476,12 @@ class Regeneration implements Serializable {
                 PLATFORM_CONFIG_LOCATION: platformSpecificConfigPath,
                 CONFIGURE_ARGS: getConfigureArgs(platformConfig, variant),
                 OVERRIDE_FILE_NAME_VERSION: '',
-                USE_ADOPT_SHELL_SCRIPTS: true,
+                // The generated job must default to the same script source as
+                // its defaults JSON.  A user/Dragonwell defaults file must not
+                // silently fall back to Adoptium when this child job is run
+                // directly (or rebuilt): CI_REF can legitimately be a branch
+                // that only exists in the user pipeline repository.
+                USE_ADOPT_SHELL_SCRIPTS: DEFAULTS_JSON['repository']['pipeline_url'] == ADOPT_DEFAULTS_JSON['repository']['pipeline_url'],
                 ADDITIONAL_FILE_NAME_TAG: platformConfig.additionalFileNameTag as String,
                 JDK_BOOT_VERSION: platformConfig.bootJDK as String,
                 RELEASE: false,
@@ -536,9 +541,6 @@ class Regeneration implements Serializable {
         userRemoteConfigs.remotes = gitRemoteConfigs
         params.put('USER_REMOTE_CONFIGS', JsonOutput.prettyPrint(JsonOutput.toJson(userRemoteConfigs)))
 
-        def repoHandler = new RepoHandler(userRemoteConfigs)
-        repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
-
         params.put('DEFAULTS_JSON', JsonOutput.prettyPrint(JsonOutput.toJson(DEFAULTS_JSON)))
         params.put('ADOPT_DEFAULTS_JSON', JsonOutput.prettyPrint(JsonOutput.toJson(ADOPT_DEFAULTS_JSON)))
 
@@ -571,6 +573,8 @@ class Regeneration implements Serializable {
             create = context.jobDsl targets: jobTemplatePath, ignoreExisting: false, additionalParameters: params
         } catch (Exception e) {
             context.println "[WARNING] Something went wrong when creating the job dsl. It may be because we are trying to pull the template inside a user repository. Using Adopt's template instead. Error:\n${e}"
+            def repoHandler = new RepoHandler(userRemoteConfigs)
+            repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
             repoHandler.checkoutAdoptPipelines(context)
             create = context.jobDsl targets: ADOPT_DEFAULTS_JSON['templateDirectories']['downstream'], ignoreExisting: false, additionalParameters: params
             repoHandler.checkoutUserPipelines(context)

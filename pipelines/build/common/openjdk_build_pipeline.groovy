@@ -122,15 +122,9 @@ class Build {
         this.env = env
     }
 
-    // Workaround to handle different versions of Badge plugin
+    // Use the String-based Badge API, which is compatible with sandbox execution.
     def appendSummaryText(summary, text) {
-        try {
-                def currentText = summary.getText() ?: ""
-                summary.setText(currentText + text)
-        } catch (Exception e) {
-                echo "setText failed, trying deprecated appendText: ${e.message}"
-                summary.appendText(text, false)
-        }
+        summary.appendText(text.toString())
     }
 
     /*
@@ -312,6 +306,11 @@ class Build {
             sdkUrl += " ${env.BUILD_URL}/artifact/workspace/target/${testImageName}"
         }
 
+        def testFlag = ''
+        if (buildConfig.VARIANT == 'dragonwell' && buildConfig.BUILD_ARGS?.contains('standard')) {
+            testFlag = 'Dragonwell_Standard'
+        }
+
         // If SBOM created then need to pass to aqa-tests for special.system reproducible verification test
         if (buildConfig.BUILD_ARGS?.contains('--create-sbom')) {
             def sbomName = jdkFileName.replace('-jdk_', '-sbom_')
@@ -340,9 +339,7 @@ class Build {
             
             def displayName = "jdk${jobParams.JDK_VERSIONS} : ${buildConfig.SCM_REF}${releaseAppendix} : ${jobParams.ARCH_OS_LIST}"
             context.echo " Temurin AQA_Test_Pipeline${releaseAppendix} job : ${displayName}"                                    
-            def aqaJob = context.build job: "${aqaTestPipelineJobName}",
-                propagate: false,
-                parameters: [
+            def aqaTestParams = [
                     context.string(name: 'SDK_RESOURCE', value: 'customized'),
                     context.string(name: 'CUSTOMIZED_SDK_URL', value: "${sdkUrl}"),
                     context.string(name: 'ADOPTOPENJDK_BRANCH', value: "${aqaBranch}"),
@@ -350,8 +347,15 @@ class Build {
                     context.string(name: 'BUILD_TYPE', value: "${build_type}"),
                     context.string(name: 'VARIANT', value: "${buildConfig.VARIANT}"),
                     context.string(name: 'PLATFORMS', value: "${jobParams.ARCH_OS_LIST}"),
+                    context.string(name: 'TEST_FLAG', value: testFlag),
                     context.string(name: 'PIPELINE_DISPLAY_NAME', value: "${displayName}")
-                ],
+            ]
+            if (buildConfig.ARCHITECTURE == 'riscv64') {
+                aqaTestParams.add(context.string(name: 'TIME_LIMIT', value: '48'))
+            }
+            def aqaJob = context.build job: "${aqaTestPipelineJobName}",
+                propagate: false,
+                parameters: aqaTestParams,
                 wait: false,
                 waitForStart: true
             if (aqaJob?.absoluteUrl && aqaJob?.number) {
@@ -776,10 +780,13 @@ def aqaAutoGen = Boolean.valueOf(buildConfig.AQA_AUTO_GEN as String)
         context.stage('GPG sign') {
             context.println "RUNNING sign_temurin_gpg for ${buildConfig.TARGET_OS}/${buildConfig.ARCHITECTURE} ..."
 
+            def filter = buildConfig.TARGET_OS == "windows" ? "**/*.zip" : "**/*.tar.gz"
             def params = [
                   context.string(name: 'UPSTREAM_JOB_NUMBER', value: "${env.BUILD_NUMBER}"),
                   context.string(name: 'UPSTREAM_JOB_NAME', value: "${env.JOB_NAME}"),
-                  context.string(name: 'UPSTREAM_DIR', value: 'workspace/target')
+                  context.string(name: 'JDK_FILE_FILTER', value: filter),
+                  context.string(name: 'UPSTREAM_DIR', value: 'workspace/target'),
+                  context.string(name: 'NODE_LABEL', value: 'gpgsign')
            ]
 
             def signSHAsJob = context.build job: 'build-scripts/release/sign_temurin_gpg',
@@ -1629,7 +1636,7 @@ def buildScriptsAssemble(
         // Pass actual ADOPT_DEFAULTS_JSON, and optional buildConfig CI and BUILD branch/tag overrides,
         // so that RepoHandler checks out the desired repo correctly
         def repoHandler = new RepoHandler(USER_REMOTE_CONFIGS, ADOPT_DEFAULTS_JSON, buildConfig.CI_REF, buildConfig.BUILD_REF)
-        repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON['defaultsUrl'])
+        repoHandler.setUserDefaultsJson(context, DEFAULTS_JSON)
         return context.stage('build') {
             context.println 'USER_REMOTE_CONFIGS: '
             context.println JsonOutput.toJson(USER_REMOTE_CONFIGS)
@@ -1801,6 +1808,7 @@ def buildScriptsAssemble(
                                     context.println "openjdk_build_pipeline: calling MABF to do single pass build when USE_ADOPT_SHELL_SCRIPTS is false"
                                     batOrSh("bash ./${DEFAULTS_JSON['scriptDirectories']['buildfarm']}")
                                 }
+                                context.sh(script: "git config --global http.sslVerify false")
                                 context.println '[CHECKOUT] Reverting pre-build user temurin-build checkout...'
                                 repoHandler.checkoutUserPipelines(context)
                                 printGitRepoInfo()
@@ -2180,6 +2188,17 @@ def buildScriptsAssemble(
 
                                 context.println "openjdk_build_pipeline: building in docker image from docker file " + buildConfig.DOCKER_FILE
                                 context.docker.build("build-image", "--build-arg image=${docker_image_target} -f ${buildConfig.DOCKER_FILE} .").inside(buildConfig.DOCKER_ARGS) {
+                                    if (buildConfig.VARIANT == 'dragonwell' && buildConfig.TARGET_OS != 'windows') {
+                                        context.withCredentials([
+                                            [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextpk', accessKeyVariable: 'PKID', secretKeyVariable: 'AIEXTPK'],
+                                            [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextsk', accessKeyVariable: 'SKID', secretKeyVariable: 'AIEXTSK']]) {
+                                            context.sh(script: '''
+                                                set +x
+                                                printf '%s' "$AIEXTSK" | base64 -d > "$HOME/sk.bin"
+                                                printf '%s' "$AIEXTPK" | base64 -d > "$HOME/pk.bin"
+                                            ''')
+                                        }
+                                    }
                                     buildScripts(
                                         cleanWorkspace,
                                         cleanWorkspaceAfter,
@@ -2192,6 +2211,9 @@ def buildScriptsAssemble(
                             } else {
                                 dockerImageDigest = dockerImageDigest.replaceAll("\\[", "").replaceAll("\\]", "")
                                 String dockerRunArg="-e \"BUILDIMAGESHA=$dockerImageDigest\" --init"
+                                if (buildConfig.TARGET_OS != 'windows') {
+                                    dockerRunArg += " -e HTTPS_PROXY= -e https_proxy= -e HTTP_PROXY= -e http_proxy="
+                                }
 
                                 // Are we running podman in Docker CLI Emulation mode?
                                 def isPodman = context.sh(script: "docker --version | grep podman", returnStatus:true)
@@ -2219,6 +2241,17 @@ def buildScriptsAssemble(
                                 } else {
                                     context.println "openjdk_build_pipeline: running initial build in docker on non-windows with image " + docker_image_target
                                     context.docker.image(docker_image_target).inside(buildConfig.DOCKER_ARGS+" "+dockerRunArg) {
+                                        if (buildConfig.VARIANT == 'dragonwell') {
+                                            context.withCredentials([
+                                                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextpk', accessKeyVariable: 'PKID', secretKeyVariable: 'AIEXTPK'],
+                                                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextsk', accessKeyVariable: 'SKID', secretKeyVariable: 'AIEXTSK']]) {
+                                                context.sh(script: '''
+                                                    set +x
+                                                    printf '%s' "$AIEXTSK" | base64 -d > "$HOME/sk.bin"
+                                                    printf '%s' "$AIEXTPK" | base64 -d > "$HOME/pk.bin"
+                                                ''')
+                                            }
+                                        }
                                         buildScripts(
                                             cleanWorkspace,
                                             cleanWorkspaceAfter,
@@ -2335,10 +2368,12 @@ def buildScriptsAssemble(
                         throw new Exception("[ERROR] Installer job timeout (${buildTimeouts.INSTALLER_JOBS_TIMEOUT} HOURS) has been reached OR the downstream installer job failed. Exiting...")
                     }
                 }
-                if (!env.JOB_NAME.contains('pr-tester') && buildConfig.VARIANT == 'temurin' && enableSigner) {
+                if (!env.JOB_NAME.contains('pr-tester') &&
+                        (buildConfig.VARIANT == 'temurin' || buildConfig.VARIANT == 'dragonwell') &&
+                        enableSigner) {
                     try {
                         context.println "openjdk_build_pipeline: Running GPG signing process"
-                        if (buildConfig.BUILD_ARGS.contains('--create-sbom')) {
+                        if (buildConfig.VARIANT == 'temurin' && buildConfig.BUILD_ARGS.contains('--create-sbom')) {
                             jsfSignSBOM()
                         }
                         gpgSign()

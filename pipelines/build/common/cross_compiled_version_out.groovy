@@ -17,6 +17,12 @@ import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
 // TODO: ADD THE ACTIVE NODE TIMEOUT LOGIC HERE OR GET IT MERGED INTO JOB HELPER (https://github.com/adoptium/temurin-build/issues/2235)
 String nodeLabel = (params.NODE) ?: ''
 
+def originNodeLabel = nodeLabel
+if (nodeLabel.contains('&&riscv64')) {
+    nodeLabel = nodeLabel.minus('&&riscv64')
+    nodeLabel += "&&sw.tool.docker&&hw.arch.x86"
+}
+
 node(nodeLabel) {
     timestamps {
         try {
@@ -27,6 +33,7 @@ node(nodeLabel) {
                 String jdkFileFilter = params.JDK_FILE_FILTER ? params.JDK_FILE_FILTER : ''
                 String fileName = params.FILENAME ? params.FILENAME : ''
                 String os = params.OS ? params.OS : ''
+                String arch = sh(returnStdout:true, script: "arch").trim()
 
                 println '[INFO] PARAMS:'
                 println "UPSTREAM_JOB_NAME = ${jobName}"
@@ -34,6 +41,7 @@ node(nodeLabel) {
                 println "JDK_FILE_FILTER = ${jdkFileFilter}"
                 println "FILENAME = ${fileName}"
                 println "OS = ${os}"
+                println "ARCH = ${arch}"
 
                 // Verify any previous binaries and versions have been cleaned out
                 if (fileExists('OpenJDKBinary')) {
@@ -69,28 +77,49 @@ node(nodeLabel) {
                     }
 
                     String jdkDir = sh(
-                        script: 'ls | grep jdk',
+                        script: 'ls | grep dragonwell',
                         returnStdout: true,
                         returnStatus: false
                     ).trim()
 
                     // Run java version and save to variable
-                    dir(jdkDir) {
-                        dir('bin') {
-                            println "[INFO] Running java -version on extracted binary ${jdkDir}..."
+                    if (nodeLabel.contains(arch)) {
+                        dir(jdkDir) {
+                            dir('bin') {
+                                println "[INFO] Running java -version on extracted binary ${jdkDir}..."
 
-                            versionOut = sh(
-                                script: './java -version 2>&1',
-                                returnStdout: true,
-                                returnStatus: false
-                            ).trim()
-
-                            if (versionOut == '') {
-                                throw new Exception('[ERROR] Java version was not retrieved or found!')
-                            } else {
-                                println "[INFO] Retrieved version string:\n${versionOut}"
+                                versionOut = sh(
+                                    script: './java -version 2>&1',
+                                    returnStdout: true,
+                                    returnStatus: false
+                                ).trim()
                             }
                         }
+                    } else {
+                        println "[INFO] Running java -version on docker..."
+                        def dockerImage = ""
+                        if (originNodeLabel.contains("riscv64")) {
+                            dockerImage = "alibabadragonwelljdk/riscv-normal-qemu_6.0.0-rvv-1.0:latest"
+                            docker.image('multiarch/qemu-user-static').pull()
+                            sh "docker run --rm --privileged multiarch/qemu-user-static --reset -p yes"
+                        }
+                        docker.image(dockerImage).inside("--tty --network host") {
+                            dir(jdkDir) {
+                                dir("bin") {
+                                    versionOut = sh(
+                                       script: './java -version 2>&1',
+                                       returnStdout: true,
+                                       returnStatus: false
+                                    ).trim()
+                                }
+                            }
+                        }
+                    }
+
+                    if (versionOut == '') {
+                        throw new Exception('[ERROR] Java version was not retrieved or found!')
+                    } else {
+                        println "[INFO] Retrieved version string:\n${versionOut}"
                     }
                 }
 
