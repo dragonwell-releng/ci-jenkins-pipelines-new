@@ -68,15 +68,17 @@ class Config21 {
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',
+                dockerImage         : 'windows2022_build_image',
+                dockerRegistry      : 'https://adoptium.azurecr.io',
+                dockerCredential    : 'bbb9fa70-a1de-4853-b564-5f02193329ac',
                 additionalNodeLabels: 'win2022&&vs2022',
                 test                : 'default',
                 reproducibleCompare : [
                         'temurin'   : true
                 ],
-                configureArgs       : "--with-ucrt-dll-dir='C:/progra~2/wi3cf2~1/10/Redist/10.0.22621.0/ucrt/DLLs/x64'",
                 buildArgs           : [
                         'temurin'   : '--create-jre-image --create-sbom',
-                     'dragonwell'   : '--create-sbom'
+                     'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                 ]
         ],
 

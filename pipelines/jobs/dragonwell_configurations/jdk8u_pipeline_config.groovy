@@ -41,14 +41,18 @@ class Config8 {
             x64Windows    : [
                     os                  : 'windows',
                     arch                : 'x64',
+                    dockerImage         : 'windows2022_build_image@sha256:0d0a3afb998c34df0277d6a5ed97c2d8d705012e6a93d358af25af638963ef6f',
+                    dockerRegistry      : 'https://adoptium.azurecr.io',
+                    dockerCredential    : 'bbb9fa70-a1de-4853-b564-5f02193329ac',
+                    configureArgs       : [dragonwell: '--disable-ccache'],
                     additionalNodeLabels: [
                             hotspot   : 'win2012',
                             corretto  : 'win2012',
                             openj9    : 'win2012&&mingw-cygwin',
-                            dragonwell: 'win2012&&vs2017'
+                            dragonwell: 'win2022&&vs2022'
                     ],
                     buildArgs           : [
-                        'dragonwell'   : '--create-sbom'
+                        'dragonwell'   : '--create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                     ],
                     test                : 'default'
             ],
