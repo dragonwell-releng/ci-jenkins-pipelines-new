@@ -23,7 +23,7 @@ class Config8 {
             x64Linux      : [
                     os           : 'linux',
                     arch         : 'x64',
-                    dockerImage  : 'alibabadragonwelljdk/release_centos6_build_image',
+                    dockerImage  : 'adoptopenjdk/centos6_build_image',
                     dockerFile   : [
                             openj9    : 'pipelines/build/dockerFiles/cuda.dockerfile',
                             dragonwell: 'pipelines/build/dockerFiles/dragonwell.dockerfile'
