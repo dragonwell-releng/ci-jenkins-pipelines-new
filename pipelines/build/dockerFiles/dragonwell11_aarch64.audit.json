@@ -1,0 +1,48 @@
+{
+  "audited_on": "2026-10-21",
+  "platform": "linux/arm64",
+  "old_image": "joeylee97/dragonwell_centos7_gcc9_build_image@sha256:e60586412f7c922c574dd5e0f14900c13db4fbbdbc533cc032584abd578d12f9",
+  "upstream_image": "adoptopenjdk/centos7_build_image@sha256:6d30aa192dfb1ff7dc28a3d21a91eb3dd47699b7778e23bd9d81fab42391afb9",
+  "old_image_created": "2020-12-03T08:55:01.195935299Z",
+  "upstream_image_created": "2026-10-19T08:16:06.338535041Z",
+  "old_customization": {
+    "package_operations": ["yum update -y", "yum groupinstall Development Tools -y", "yum install wget -y"],
+    "gcc_version": "9.3.0",
+    "gcc_prefix": "/usr/local/gcc-9.3.0/",
+    "gcc_configure_args": ["--enable-shared", "--enable-threads=posix", "--enable-__cxa_atexit", "--enable-clocale=gnu", "--disable-multilib", "--enable-languages=all"],
+    "final_layer": "sha256:009fa053ce79a22496942a348f2d6bec7d4f2c46d4e96dbb8dd2400ad2d9b746",
+    "final_layer_compressed_bytes": 2692640038,
+    "final_layer_observations": {
+      "gcc_installation_entries": 2474,
+      "contains_gcc_build_intermediates": true,
+      "regular_files_under_etc": [],
+      "symlinks_under_system_bin_and_lib64": []
+    }
+  },
+  "rpm_comparison": {
+    "method": "rpm -qa in local-image-only, network-disabled, read-only temporary containers on the ARM64 Jenkins node",
+    "old_package_names": 500,
+    "upstream_package_names": 476,
+    "common_packages_with_different_versions": 96,
+    "old_only_package_names": ["apr-util", "automake", "libmodman", "systemtap-client", "libgfortran", "less", "systemd-sysv", "subversion-libs", "gettext-devel", "subversion", "libtool", "diffstat", "rpm-sign", "libepoxy", "libpciaccess", "apr", "perl-Thread-Queue", "gdb", "systemtap-runtime", "systemtap-devel", "redhat-rpm-config", "neon", "git", "intltool", "cscope", "indent", "patchutils", "mercurial", "xorg-x11-server-Xorg", "python-srpm-macros", "emacs-filesystem", "kernel-debug-devel", "gettext-common-devel", "dwz", "perl-Git", "rpm-build", "systemtap", "rcs", "swig", "perl-Error", "perl-XML-Parser", "libproxy", "pakchois", "perl-TermReadKey", "perl-srpm-macros", "rsync", "elfutils", "gcc-gfortran", "byacc", "doxygen", "ctags", "hwdata"],
+    "important_versions": {
+      "glibc": {"old": "2.17-317.el7.aarch64", "upstream": "2.17-326.el7_9.3.aarch64"},
+      "binutils": {"old": "2.27-44.base.el7.aarch64", "upstream": "2.27-44.base.el7_9.1.aarch64"},
+      "gcc": {"both": "4.8.5-44.el7.aarch64"},
+      "gcc-c++": {"both": "4.8.5-44.el7.aarch64"},
+      "make": {"both": "3.82-24.el7.aarch64"},
+      "autoconf": {"both": "2.69-11.el7.noarch"},
+      "systemtap-sdt-devel": {"both": "4.0-13.el7.aarch64"}
+    },
+    "limitations": ["RPM absence does not prove command absence: upstream may install tools from source.", "Source-installed GCC 9.3.0 is not included in the RPM counts."]
+  },
+  "migration_scope": {
+    "upstream_gcc": {"version": "9.3.0", "prefix": "/usr/local/gcc9", "configure_args": ["--prefix=/usr/local/gcc9", "--program-suffix=-9.3"]},
+    "upstream_source_installed_tools": {"git": "/usr/local/bin/git (2.15.0)", "make": "/usr/local/bin/make (4.1)"},
+    "preserved": ["GCC 9.3.0 version", "legacy gcc/g++ selection paths via explicit symlinks"],
+    "changed": ["Use upstream GCC build and configure defaults rather than the old custom GCC build"],
+    "not_copied": ["GCC source/build intermediates", "package-manager state", "shell history"],
+    "upstream_owned": ["OS package patch levels", "general build dependencies"],
+    "not_claimed": ["Identical RPM inventory", "Byte-identical toolchain or JDK binaries", "Functional equivalence without testing"]
+  }
+}
