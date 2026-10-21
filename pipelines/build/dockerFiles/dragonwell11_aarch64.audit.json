@@ -39,7 +39,7 @@
   "migration_scope": {
     "upstream_gcc": {"version": "9.3.0", "prefix": "/usr/local/gcc9", "configure_args": ["--prefix=/usr/local/gcc9", "--program-suffix=-9.3"]},
     "upstream_source_installed_tools": {"git": "/usr/local/bin/git (2.15.0)", "make": "/usr/local/bin/make (4.1)"},
-    "preserved": ["GCC 9.3.0 version", "legacy gcc/g++ selection paths via explicit symlinks"],
+    "preserved": ["GCC 9.3.0 version", "legacy gcc/g++ selection paths via explicit symlinks", "serverless-adapter JAVA_HOME=/usr/lib/jvm/jdk-11 via symlink to upstream jdk11"],
     "changed": ["Use upstream GCC build and configure defaults rather than the old custom GCC build"],
     "not_copied": ["GCC source/build intermediates", "package-manager state", "shell history"],
     "upstream_owned": ["OS package patch levels", "general build dependencies"],

@@ -13,3 +13,10 @@ RUN set -eux; \
     ln -s /usr/local/gcc9 /usr/local/gcc-9.3.0; \
     /usr/local/gcc-9.3.0/bin/gcc --version; \
     /usr/local/gcc-9.3.0/bin/g++ --version
+
+# The ARM64 serverless-adapter Maven step still uses the old jdk-11 path.
+RUN set -eux; \
+    test -x /usr/lib/jvm/jdk11/bin/javac; \
+    ln -s /usr/lib/jvm/jdk11 /usr/lib/jvm/jdk-11; \
+    /usr/lib/jvm/jdk-11/bin/java -version; \
+    /usr/lib/jvm/jdk-11/bin/javac -version
