@@ -36,7 +36,31 @@
     },
     "limitations": ["RPM absence does not prove command absence: upstream may install tools from source.", "Source-installed GCC 9.3.0 is not included in the RPM counts."]
   },
+  "build_validation": {
+    "url": "http://ci.dragonwell-jdk.io/job/build-scripts-new/job/jobs/job/jdk11u/job/jdk11u-linux-aarch64-dragonwell/5/",
+    "tested_ci_commit": "2abddcb7",
+    "source_revision": "5b624bdf0fa",
+    "build_scripts_revision": "e9a5dcd39b228b2feb654027e42ea5625ccbb2b6",
+    "jdk_version": "11.0.32.29+9",
+    "jdk_sha256_from_archived_metadata": "a66af3f762a60b2dbce0af121326c7ee5e7f2d5606081c7e8556e367f676dac7",
+    "baseline_build": {
+      "number": 2,
+      "source_revision": "5b624bdf0fa",
+      "build_scripts_revision": "6be4de2959acd47ced37db611624f80013599b68",
+      "jdk_sha256_from_archived_metadata": "97493d304c3efbb76be424a57febbba3eed4117b3880047074394d8f78824889",
+      "comparison_scope": "Same JDK source revision and reported version, but different build-script revisions and environments; not an isolated image-only A/B equivalence test"
+    },
+    "verified": ["JDK product images compiled", "serverless-adapter Maven BUILD SUCCESS", "JDK archive and metadata present in Jenkins artifacts", "Archived metadata reports the audited upstream image digest", "Built JDK java -version reports Dragonwell 11.0.32.29+9"],
+    "pipeline_result": "FAILURE",
+    "archived_packages": ["jdk", "jre", "debugimage", "static-libs-glibc", "testimage"],
+    "post_build_failures": {
+      "gpg": {"job": "build-scripts/release/sign_temurin_gpg/1674", "error": "gpg: signing failed: Unusable secret key", "exit_code": 2},
+      "sbom": {"job": "sbom_validator_job/47", "error": "Build step Execute shell marked build as failure", "limitations": "Console does not expose the underlying validator diagnostic"}
+    },
+    "limitations": ["Build and packaging succeeded, but GPG signing and SBOM validation failed", "Smoke tests were skipped by the pipeline", "No functional regression or byte-for-byte equivalence test performed"]
+  },
   "migration_scope": {
+    "adapter_jdk": {"old": "AdoptOpenJDK 11.0.9+11 at /usr/lib/jvm/jdk-11", "upstream": "Temurin 11.0.32.1+1 at /usr/lib/jvm/jdk11"},
     "upstream_gcc": {"version": "9.3.0", "prefix": "/usr/local/gcc9", "configure_args": ["--prefix=/usr/local/gcc9", "--program-suffix=-9.3"]},
     "upstream_source_installed_tools": {"git": "/usr/local/bin/git (2.15.0)", "make": "/usr/local/bin/make (4.1)"},
     "preserved": ["GCC 9.3.0 version", "legacy gcc/g++ selection paths via explicit symlinks", "serverless-adapter JAVA_HOME=/usr/lib/jvm/jdk-11 via symlink to upstream jdk11"],
