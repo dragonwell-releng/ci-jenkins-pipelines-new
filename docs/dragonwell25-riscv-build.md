@@ -33,6 +33,9 @@ RISC-V 配置的 `dockerArgs: '-e RISCV_MARCH='` 会清除旧 v1 镜像携带的
 跳过 SBOM 校验、SmokeTests、AQA/TCK、可复现比较。
 构建描述和日志会标明 BUILD ONLY，不能据此声称通过运行验证。
 签名和安装包生成流程保持原有行为。
+Dragonwell 25 RISC-V 交叉构建在该策略开启时，从生成 JDK 的 `release` 文件读取版本元数据，
+不再调用旧 QEMU 环境执行 `java -version`；元数据会明确标注目标 JVM 未执行。
+关闭跳过策略后恢复原有运行版本读取流程。
 
 恢复时将 skipAll 改为 false，或者删除 postBuildValidation 配置。
 如需缩小范围，可设置 skipAll=false，并使用 skip 列出具体的
