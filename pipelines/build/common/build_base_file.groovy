@@ -117,6 +117,8 @@ class Builder implements Serializable {
 
         def dockerImage = getDockerImage(platformConfig, variant)
 
+        def osLabel = getHostOsLabel(platformConfig.os as String, dockerImage as String)
+
         def dockerArgs = getDockerArgs(platformConfig, variant)
 
         def dockerFile = getDockerFile(platformConfig, variant)
@@ -181,7 +183,7 @@ class Builder implements Serializable {
             AQA_REF: aqaReference,
             AQA_AUTO_GEN: aqaAutoGen,
             BUILD_ARGS: buildArgs,
-            NODE_LABEL: "${additionalNodeLabels}&&${platformConfig.os}&&${archLabel}",
+            NODE_LABEL: "${additionalNodeLabels}&&${osLabel}&&${archLabel}",
             ADDITIONAL_TEST_LABEL: "${additionalTestLabels}",
             ADDITIONAL_TEST_PARAMS: additionalTestParams,
             KEEP_TEST_REPORTDIR: keepTestReportDir,
@@ -426,6 +428,11 @@ class Builder implements Serializable {
 
         return overrideDocker
 }
+
+    // Alpine containers use Linux Docker hosts; native builds retain their OS label.
+    static String getHostOsLabel(String targetOs, String dockerImage) {
+        return targetOs == 'alpine-linux' && dockerImage ? 'linux' : targetOs
+    }
 
     def getArchLabel(Map<String, ?> configuration, String variant) {
         // Default to arch
