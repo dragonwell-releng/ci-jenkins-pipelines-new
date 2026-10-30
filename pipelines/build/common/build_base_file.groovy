@@ -605,6 +605,13 @@ class Builder implements Serializable {
             }
         }
 
+        // A per-run restriction keeps the existing OS/architecture/build labels intact.
+        String target = "${configuration.os}-${configuration.arch}-${variant}".toString()
+        def nodeRestriction = DEFAULTS_JSON?.buildNodeLabels?.get(target)
+        if (nodeRestriction) {
+            labels += "&&(${nodeRestriction})"
+        }
+
         return labels
     }
 

@@ -66,4 +66,25 @@ class BuildConfigurationRoutingTest {
                 platformSpecificConfigPath: 'custom/platform']).toString())
     }
 
+    @Test void perRunNodeRestrictionPreservesRequiredLabels() {
+        builder.DEFAULTS_JSON.buildNodeLabels = ['alpine-linux-x64-dragonwell': 'worker-a || worker-b']
+        assertEquals('custom&&build&&(worker-a || worker-b)', builder.formAdditionalBuildNodeLabels(
+            [os: 'alpine-linux', arch: 'x64', additionalNodeLabels: 'custom'], 'dragonwell').toString())
+    }
+
+    @Test void perRunNodeRestrictionIsScopedToPlatformAndVariant() {
+        builder.DEFAULTS_JSON.buildNodeLabels = ['alpine-linux-x64-dragonwell': 'worker-a']
+        assertEquals('build', builder.formAdditionalBuildNodeLabels(
+            [os: 'linux', arch: 'x64'], 'dragonwell').toString())
+        assertEquals('build', builder.formAdditionalBuildNodeLabels(
+            [os: 'alpine-linux', arch: 'x64'], 'openj9').toString())
+    }
+
+    @Test void perRunNodeRestrictionRetainsCrossBuildHostSelection() {
+        builder.DEFAULTS_JSON.buildNodeLabels = ['linux-riscv64-dragonwell': 'worker-a']
+        assertEquals('build&&(worker-a)', builder.formAdditionalBuildNodeLabels(
+            [os: 'linux', arch: 'riscv64', crossCompile: 'x64'], 'dragonwell').toString())
+        assertEquals('x64', builder.getArchLabel([arch: 'riscv64', crossCompile: 'x64'], 'dragonwell'))
+    }
+
 }

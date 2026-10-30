@@ -73,3 +73,15 @@ cd pipelines
 
 这些是单次构建覆盖，不需要为每个调试分支修改代码中的默认 master 引用。
 Alpine Docker 任务使用 Linux 宿主节点；`TARGET_OS` 仍为 `alpine-linux`。
+
+### Restricting a single verification run to a build node
+
+To avoid a full or unavailable worker during debugging, add an optional restriction to the run's `defaultsJson`:
+
+```json
+"buildNodeLabels": {
+  "alpine-linux-x64-dragonwell": "worker-with-free-space"
+}
+```
+
+Keys are `<target-os>-<target-arch>-<variant>`. The expression is appended with `&&` to the existing build, OS, host architecture and Docker requirements; it cannot replace those requirements. Omit it for normal scheduling. This is applied by the upstream pipeline when constructing downstream build parameters and does not change saved job labels.
