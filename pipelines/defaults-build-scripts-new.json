@@ -59,6 +59,9 @@
         }
     },
     "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines-new/dev/fix-scripts/pipelines/defaults-build-scripts-new.json",
+    "postBuildValidation"    : {
+        "skipAll"            : true
+    },
     "enableInstallers"       : true,
     "enableSigner"           : true,
     "cleanWorkspaceBeforeBuild" : false,

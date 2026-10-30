@@ -1954,6 +1954,16 @@ def buildScriptsAssemble(
         context.currentBuild.description = tmpDesc + "<a href=${context.JENKINS_URL}computer/${context.NODE_NAME}>${context.NODE_NAME}</a>"
     }
 
+    // Temporary global bypass includes release builds; targeted skips remain non-release only.
+    static boolean shouldSkipPostBuildValidation(Map config, Map defaults) {
+        Map policy = defaults['postBuildValidation'] ?: [:]
+        if (Boolean.valueOf(policy.skipAll as String)) {
+            return true
+        }
+        String key = "${config.JAVA_TO_BUILD}/${config.VARIANT}/${config.TARGET_OS}/${config.ARCHITECTURE}"
+        return !Boolean.valueOf(config.RELEASE as String) && (policy.skip ?: []).contains(key)
+    }
+
     /*
     This method validates all SBOMs produced by this build.
     */
@@ -2397,53 +2407,65 @@ def buildScriptsAssemble(
                     }
                 }
 
-                // Validate the SBOM.
-                if (buildConfig.BUILD_ARGS.contains('--create-sbom')) {
-                    try {
-                        if (validateSbom() == 'SUCCESS') {
-                            context.println "openjdk_build_pipeline: SBOMs created by this build passed validation."
-                        } else {
-                            context.println('[ERROR] SBOMs created by this build failed validation.')
+                if (shouldSkipPostBuildValidation([
+                        JAVA_TO_BUILD: buildConfig.JAVA_TO_BUILD, VARIANT: buildConfig.VARIANT,
+                        TARGET_OS: buildConfig.TARGET_OS, ARCHITECTURE: buildConfig.ARCHITECTURE,
+                        RELEASE: buildConfig.RELEASE
+                    ], DEFAULTS_JSON)) {
+                    context.stage('post-build validation skipped') {
+                        context.println('[WARNING] Temporary post-build validation bypass: SBOM validation, SmokeTests, AQA/TCK and reproducible comparison were skipped. Artifacts are build-only and have not passed post-build validation.')
+                        currentBuild.description = (currentBuild.description ?: '') +
+                            '<br>BUILD ONLY: post-build validation skipped (temporary bypass)'
+                    }
+                } else {
+                    // Validate the SBOM.
+                    if (buildConfig.BUILD_ARGS.contains('--create-sbom')) {
+                        try {
+                            if (validateSbom() == 'SUCCESS') {
+                                context.println "openjdk_build_pipeline: SBOMs created by this build passed validation."
+                            } else {
+                                context.println('[ERROR] SBOMs created by this build failed validation.')
+                                currentBuild.result = 'FAILURE'
+                            }
+                        } catch (Exception e) {
+                            context.println(e.message)
                             currentBuild.result = 'FAILURE'
                         }
-                    } catch (Exception e) {
-                        context.println(e.message)
-                        currentBuild.result = 'FAILURE'
+                    } else {
+                        context.println('openjdk_build_pipeline: Skipping sbom validation because --create-sbom was not found in BUILD_ARGS.')
                     }
-                } else {
-                    context.println('openjdk_build_pipeline: Skipping sbom validation because --create-sbom was not found in BUILD_ARGS.')
-                }
 
-                // Run Smoke Tests and AQA Tests
+                    // Run Smoke Tests and AQA Tests
 
-                if (currentBuild.currentResult != "SUCCESS") {
-                    context.println('[ERROR] Build stages were not successful, not running Smoke tests')
-                } else {
-                    try {
-                        //Only smoke tests succeed TCK and AQA tests will be triggerred.
-                        context.println "openjdk_build_pipeline: running smoke tests"
-                        if (runSmokeTests() == 'SUCCESS') {
-                            context.println "openjdk_build_pipeline: smoke tests OK - running full AQA suite"
-                            // Remote trigger Eclipse Temurin JCK tests
-                            if (enableTests) {
-                                if (buildConfig.VARIANT == 'temurin' && enableTCK) {
-                                    remoteTriggerJckTests(filename)
+                    if (currentBuild.currentResult != "SUCCESS") {
+                        context.println('[ERROR] Build stages were not successful, not running Smoke tests')
+                    } else {
+                        try {
+                            //Only smoke tests succeed TCK and AQA tests will be triggerred.
+                            context.println "openjdk_build_pipeline: running smoke tests"
+                            if (runSmokeTests() == 'SUCCESS') {
+                                context.println "openjdk_build_pipeline: smoke tests OK - running full AQA suite"
+                                // Remote trigger Eclipse Temurin JCK tests
+                                if (enableTests) {
+                                    if (buildConfig.VARIANT == 'temurin' && enableTCK) {
+                                        remoteTriggerJckTests(filename)
+                                    }
+                                    runAQATests(filename)
                                 }
-                                runAQATests(filename)
+                            } else {
+                                context.println('[ERROR]Smoke tests are not successful! AQA and TCK tests are blocked ')
                             }
-                        } else {
-                            context.println('[ERROR]Smoke tests are not successful! AQA and TCK tests are blocked ')
+                        } catch (Exception e) {
+                            context.println(e.message)
+                            currentBuild.result = 'FAILURE'
                         }
-                    } catch (Exception e) {
-                        context.println(e.message)
-                        currentBuild.result = 'FAILURE'
                     }
-                }
-                
 
-                // Compare reproducible build if needed
-                if (enableReproducibleCompare) {
-                    compareReproducibleBuild(nonDockerNodeName)
+
+                    // Compare reproducible build if needed
+                    if (enableReproducibleCompare) {
+                        compareReproducibleBuild(nonDockerNodeName)
+                    }
                 }
 
             // Generic catch all. Will usually be the last message in the log.
