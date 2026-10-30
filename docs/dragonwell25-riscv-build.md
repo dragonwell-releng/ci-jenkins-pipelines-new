@@ -12,8 +12,8 @@ Dockerfile 和可缓存的构建脚本位于构建仓库的 `docker/dragonwell25
 如使用其他镜像仓库或 digest，修改 `jdk25u_pipeline_config.groovy` 的 `dockerImage`。
 
 工具链和 sysroot 路径由构建仓库的 Linux 平台脚本统一选择，流水线不再传入旧 sysroot。
-目标为 Anolis GCC 14.3.0、glibc 2.38，ABI 为 `lp64d`。ISA 使用已验证的
-`rv64imafdcv_..._zcmop` 显式扩展列表，完整默认值位于构建仓库的 `linux.sh`。
+目标为 Anolis GCC 14.3.0、glibc 2.38，默认参数为
+`-march=rva23u64_zifencei -mabi=lp64d`，由构建仓库的 `linux.sh` 统一管理。
 RISC-V 配置的 `dockerArgs: '-e RISCV_MARCH='` 会清除旧 v1 镜像携带的 ISA 默认值，
 由构建脚本选择参数，无需为这次参数调整重新构建或推送镜像。
 调试其他 ISA 时，可将 DOCKER_ARGS 设为 `-e RISCV_MARCH=<完整扩展列表>`。
