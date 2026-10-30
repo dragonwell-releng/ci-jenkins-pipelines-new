@@ -149,6 +149,8 @@ class Config25 {
                 os                  : 'linux',
                 arch                : 'riscv64',
                 dockerImage         : 'alibabadragonwelljdk/dragonwell25-riscv64-build:anolis23.5-rva23-v1',
+                // Clear the legacy image ISA default; linux.sh selects the target ISA.
+                dockerArgs          : '-e RISCV_MARCH=',
                 crossCompile        : 'x64',
                 // Toolchain, sysroot and ISA are selected by openjdk-build-new linux.sh.
                 configureArgs       : '',
