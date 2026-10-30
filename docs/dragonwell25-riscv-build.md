@@ -57,3 +57,16 @@ RISC-V 配置的 `dockerArgs: '-e RISCV_MARCH='` 会清除旧 v1 镜像携带的
 cd pipelines
 ./gradlew test --tests PostBuildValidationPolicyTest --tests IndividualBuildConfigTest --tests VersionInfoTest
 ```
+
+## 通过现有上游任务调试
+
+在 `build-scripts-new/openjdk25-pipeline` 的单次构建参数中设置：
+
+- `targetConfigurations` 先选 `{"riscv64Linux":["dragonwell"]}`；成功后再选原有全部平台。
+- `buildReference` 指定构建脚本分支或 SHA，`ciReference` 指定流水线分支或 SHA。
+- `defaultsJson.repository.pipeline_branch` 同样指向被测流水线版本，因为上游会先从这里加载平台配置。
+- `defaultsJson.postBuildValidation` 保留 `{"skipAll":true}`，应用当前临时跳过策略。
+- `useAdoptBashScripts=false`，`propagateFailures=true`，`releaseType=Nightly Without Publish`。
+
+这些是单次构建覆盖，不需要为每个调试分支修改代码中的默认 master 引用。
+Alpine Docker 任务使用 Linux 宿主节点；`TARGET_OS` 仍为 `alpine-linux`。

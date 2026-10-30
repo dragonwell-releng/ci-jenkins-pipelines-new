@@ -56,4 +56,14 @@ class BuildConfigurationRoutingTest {
         assertEquals('dragonwell-releng/openjdk-build-new/platform-branch/custom/platform',
             builder.getPlatformSpecificConfigPath([buildRef: 'platform-branch', platformSpecificConfigPath: 'custom/platform']).toString())
     }
+    @Test void generatedPlatformPathsMatchRuntimeRepositoryPaths() {
+        Regeneration generator = new Regeneration('25', [:], [:], builder.DEFAULTS_JSON, [:], [:],
+            0, null, null, '', [:], '', '', '', '', '', '', '', '')
+        assertEquals('dragonwell-releng/openjdk-build-new/master/build-farm/platform-specific-configurations',
+            generator.getPlatformSpecificConfigPath([:]).toString())
+        assertEquals('dragonwell-releng/openjdk-build-new/platform-branch/custom/platform',
+            generator.getPlatformSpecificConfigPath([buildRef: 'platform-branch',
+                platformSpecificConfigPath: 'custom/platform']).toString())
+    }
+
 }
