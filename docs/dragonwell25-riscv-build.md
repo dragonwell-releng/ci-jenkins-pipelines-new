@@ -1,0 +1,55 @@
+# Dragonwell 25 RISC-V Anolis 构建
+
+与 openjdk-build-new 的同名修复分支配套使用。日常引用统一为 master；验证分支时通过
+SCM、BUILD_REF、CI_REF 选择修复分支。
+
+## 镜像
+
+RISC-V 任务拉取 `alibabadragonwelljdk/dragonwell25-riscv64-build:anolis23.5-rva23-v1`，
+在 x86_64 节点的容器里运行原有 build-farm 入口，不在每个 JDK 构建中重新编译 GCC。
+Dockerfile 和可缓存的构建脚本位于构建仓库的 `docker/dragonwell25-riscv64/`。
+首次启用前先构建并推送镜像；本仓库配置中的标签是发布约定，不代表已发布。
+如使用其他镜像仓库或 digest，修改 `jdk25u_pipeline_config.groovy` 的 `dockerImage`。
+
+工具链和 sysroot 路径由构建仓库的 Linux 平台脚本统一选择，流水线不再传入旧 sysroot。
+目标为 Anolis GCC 14.3.0、glibc 2.38，ISA/ABI 为 `rva23u64_zifencei` / `lp64d`。
+
+## 临时跳过构建后校验
+
+`pipelines/defaults-build-scripts-new.json` 中的配置：
+
+```json
+"postBuildValidation": {
+  "skipAll": true
+}
+```
+
+临时应用于使用这份 defaults 的所有 JDK 版本、平台和发行变体，包括 RELEASE=true 的发布构建。
+编译、打包、制品归档和 SBOM 生成保持开启；
+跳过 SBOM 校验、SmokeTests、AQA/TCK、可复现比较。
+构建描述和日志会标明 BUILD ONLY，不能据此声称通过运行验证。
+签名和安装包生成流程保持原有行为。
+
+恢复时将 skipAll 改为 false，或者删除 postBuildValidation 配置。
+如需缩小范围，可设置 skipAll=false，并使用 skip 列出具体的
+`JDK/VARIANT/OS/ARCH`；这种定向跳过只适用于非发布构建。
+公共 SBOM 校验任务的源码检出与制品复制修复另行处理，不包含在本次变更中。
+
+## 启用顺序
+
+1. 构建并发布上述镜像；可发布后使用 registry 返回的 digest 固定引用。
+2. 合入构建仓库的 RISC-V 变更，再合入本仓库的 RISC-V 镜像配置。
+3. 上游 openjdk25-pipeline 的 SCM 切至 master，DEFAULTS_JSON/DEFAULTS_URL 使用 master 的
+   defaults-build-scripts-new.json。若 DEFAULTS_JSON 内嵌完整 JSON，必须同步添加
+   postBuildValidation，并把 build_branch、pipeline_branch 和 defaultsUrl 改为 master。
+4. 所有需要临时跳过校验的上游任务都需使用上述新流水线代码与 defaults，再重新生成各 JDK 的下游任务。
+   已有任务内嵌的 DEFAULTS_JSON 不会随 Git 文件修改自动更新。
+5. 确认 jdk25u RISC-V 的 DOCKER_IMAGE 已更新，旧的 sysroot configure 覆盖已清空，
+   然后运行 RISC-V 构建。临时跳过策略与 RISC-V 镜像配置分别提交，可独立回退。
+
+## 测试
+
+```bash
+cd pipelines
+./gradlew test --tests PostBuildValidationPolicyTest --tests IndividualBuildConfigTest --tests VersionInfoTest
+```

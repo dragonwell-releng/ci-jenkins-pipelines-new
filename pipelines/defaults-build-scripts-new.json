@@ -1,10 +1,10 @@
 {
     "repository"             : {
         "build_url"          : "https://github.com/dragonwell-releng/openjdk-build-new.git",
-        "build_branch"       : "dev/fix-scripts",
+        "build_branch"       : "master",
         "test_dirs"          : "/test/functional",
         "pipeline_url"       : "https://github.com/dragonwell-releng/ci-jenkins-pipelines-new.git",
-        "pipeline_branch"    : "dev/fix-scripts",
+        "pipeline_branch"    : "master",
         "helper_ref"         : "upstream"
     },
     "jenkinsDetails"         : {
@@ -58,7 +58,7 @@
             "numMachines"    : ["3"]
         }
     },
-    "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines-new/dev/fix-scripts/pipelines/defaults-build-scripts-new.json",
+    "defaultsUrl"            : "https://raw.githubusercontent.com/dragonwell-releng/ci-jenkins-pipelines-new/master/pipelines/defaults-build-scripts-new.json",
     "postBuildValidation"    : {
         "skipAll"            : true
     },
