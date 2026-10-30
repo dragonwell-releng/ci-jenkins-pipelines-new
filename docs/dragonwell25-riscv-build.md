@@ -72,6 +72,7 @@ cd pipelines
 - `useAdoptBashScripts=false`，`propagateFailures=true`，`releaseType=Nightly Without Publish`。
 
 这些是单次构建覆盖，不需要为每个调试分支修改代码中的默认 master 引用。
+Alpine Docker 任务使用 Linux 宿主节点；`TARGET_OS` 仍为 `alpine-linux`。
 
 ### Restricting a single verification run to a build node
 

@@ -2277,7 +2277,8 @@ def buildScriptsAssemble(
 
                                 context.println "openjdk_build_pipeline: building in docker image from docker file " + buildConfig.DOCKER_FILE
                                 context.docker.build("build-image", "--build-arg image=${docker_image_target} -f ${buildConfig.DOCKER_FILE} .").inside(buildConfig.DOCKER_ARGS) {
-                                    if (buildConfig.VARIANT == 'dragonwell' && buildConfig.TARGET_OS != 'windows') {
+                                    // Alpine builds do not use signutil keys and may have a read-only HOME.
+                                    if (buildConfig.VARIANT == 'dragonwell' && !(buildConfig.TARGET_OS in ['windows', 'alpine-linux'])) {
                                         context.withCredentials([
                                             [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextpk', accessKeyVariable: 'PKID', secretKeyVariable: 'AIEXTPK'],
                                             [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextsk', accessKeyVariable: 'SKID', secretKeyVariable: 'AIEXTSK']]) {
@@ -2330,7 +2331,8 @@ def buildScriptsAssemble(
                                 } else {
                                     context.println "openjdk_build_pipeline: running initial build in docker on non-windows with image " + docker_image_target
                                     context.docker.image(docker_image_target).inside(buildConfig.DOCKER_ARGS+" "+dockerRunArg) {
-                                        if (buildConfig.VARIANT == 'dragonwell') {
+                                        // Alpine builds do not use signutil keys and may have a read-only HOME.
+                                        if (buildConfig.VARIANT == 'dragonwell' && buildConfig.TARGET_OS != 'alpine-linux') {
                                             context.withCredentials([
                                                 [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextpk', accessKeyVariable: 'PKID', secretKeyVariable: 'AIEXTPK'],
                                                 [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aiextsk', accessKeyVariable: 'SKID', secretKeyVariable: 'AIEXTSK']]) {
