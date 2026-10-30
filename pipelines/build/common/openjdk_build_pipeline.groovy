@@ -1954,6 +1954,28 @@ def buildScriptsAssemble(
         context.currentBuild.description = tmpDesc + "<a href=${context.JENKINS_URL}computer/${context.NODE_NAME}>${context.NODE_NAME}</a>"
     }
 
+    // Docker run options (for example -e and -v) must not be passed to docker pull.
+    static String dockerPullArguments(String runArguments) {
+        List<String> tokens = (runArguments ?: '').tokenize(' ')
+        List<String> pullArguments = []
+        for (int i = 0; i < tokens.size(); i++) {
+            String token = tokens[i]
+            if (token == '--platform') {
+                if (i + 1 >= tokens.size() || tokens[i + 1].startsWith('-')) {
+                    throw new IllegalArgumentException('--platform requires a value')
+                }
+                pullArguments.add(token)
+                pullArguments.add(tokens[++i])
+            } else if (token.startsWith('--platform=')) {
+                if (token == '--platform=') {
+                    throw new IllegalArgumentException('--platform requires a value')
+                }
+                pullArguments.add(token)
+            }
+        }
+        return pullArguments.join(' ')
+    }
+
     // Temporary global bypass includes release builds; targeted skips remain non-release only.
     static boolean shouldSkipPostBuildValidation(Map config, Map defaults) {
         Map policy = defaults['postBuildValidation'] ?: [:]
@@ -2125,6 +2147,7 @@ def buildScriptsAssemble(
 
                             // Target docker image to use, this may get aliased to a target tag using docker tag as target cannot contain a digest
                             def docker_image_target = buildConfig.DOCKER_IMAGE
+                            String dockerPullArgs = dockerPullArguments(buildConfig.DOCKER_ARGS as String)
 
                             if (!("${docker_image_target}".contains('rhel'))) {
                                 // Pull the docker image from DockerHub
@@ -2132,8 +2155,8 @@ def buildScriptsAssemble(
                                     context.timeout(time: buildTimeouts.DOCKER_PULL_TIMEOUT, unit: 'HOURS') {
                                         if (buildConfig.DOCKER_CREDENTIAL) {
                                             context.docker.withRegistry(buildConfig.DOCKER_REGISTRY, buildConfig.DOCKER_CREDENTIAL) {
-                                                if (buildConfig.DOCKER_ARGS) {
-                                                    context.sh(script: "docker pull ${docker_image_target} ${buildConfig.DOCKER_ARGS}")
+                                                if (dockerPullArgs) {
+                                                    context.sh(script: "docker pull ${docker_image_target} ${dockerPullArgs}")
                                                 } else {
                                                     context.docker.image(docker_image_target).pull()
                                                 }
@@ -2155,8 +2178,8 @@ def buildScriptsAssemble(
                                             }
                                             context.sh(script: "docker tag '${long_docker_image_name}${source_tag}' '${docker_image_target}'", returnStdout:false)
                                         } else {
-                                            if (buildConfig.DOCKER_ARGS) {
-                                                context.sh(script: "docker pull ${docker_image_target} ${buildConfig.DOCKER_ARGS}")
+                                            if (dockerPullArgs) {
+                                                context.sh(script: "docker pull ${docker_image_target} ${dockerPullArgs}")
                                             } else {
                                                 context.docker.image(docker_image_target).pull()
                                             }
