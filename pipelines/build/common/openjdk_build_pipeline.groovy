@@ -70,6 +70,7 @@ class Build {
     String dockerImageDigest = ''
     Map<String,String> dependency_version = new HashMap<String,String>()
     String crossCompileVersionPath = ''
+    static final String RELEASE_METADATA_PREFIX = '# Build-only version metadata from JDK release; target JVM not executed\n'
     Map variantVersion = [:]
 
     // Primary platforms for Temurin TCK testing: arch_os combinations that are considered primary
@@ -479,6 +480,13 @@ def aqaAutoGen = Boolean.valueOf(buildConfig.AQA_AUTO_GEN as String)
     */
     VersionInfo parseVersionOutput(String consoleOut) {
         context.println(consoleOut)
+        if (consoleOut.startsWith(RELEASE_METADATA_PREFIX)) {
+            VersionInfo parsed = new VersionInfo(context).parse(releaseRuntimeVersion(consoleOut), buildConfig.ADOPT_BUILD_NUMBER)
+            if (parsed.major != getJavaVersionNumber()) {
+                throw new IllegalArgumentException('Target release metadata has an unexpected Java feature version')
+            }
+            return parsed
+        }
         Matcher matcher = (consoleOut =~ /(?ms)^.*Runtime Environment[^\n]*\(build (?<version>[^)]*)\).*$/)
         if (matcher.matches()) {
             context.println('matched')
@@ -1260,6 +1268,23 @@ def aqaAutoGen = Boolean.valueOf(buildConfig.AQA_AUTO_GEN as String)
             throw new Exception("[ERROR] Build archive timeout (${buildTimeouts.BUILD_ARCHIVE_TIMEOUT} HOURS) has been reached. Exiting...")
         }
 
+        if (shouldUseReleaseMetadata([
+                JAVA_TO_BUILD: buildConfig.JAVA_TO_BUILD, VARIANT: buildConfig.VARIANT,
+                TARGET_OS: buildConfig.TARGET_OS, ARCHITECTURE: buildConfig.ARCHITECTURE,
+                RELEASE: buildConfig.RELEASE, BUILD_ARGS: buildConfig.BUILD_ARGS
+            ], DEFAULTS_JSON)) {
+            String releaseText = context.readFile('workspace/target/metadata/release.txt')
+            if (releaseProperties(releaseText)['OS_ARCH'] != 'riscv64') {
+                throw new IllegalArgumentException('Target release metadata is not riscv64')
+            }
+            releaseRuntimeVersion(releaseText) // Fail on missing version before writing metadata.
+            crossCompileVersionPath = 'workspace/target/metadata/cross-build-release.txt'
+            String metadataText = RELEASE_METADATA_PREFIX + releaseText
+            context.writeFile(file: crossCompileVersionPath, text: metadataText)
+            context.println('[BUILD ONLY] Version metadata derived from JDK release; target JVM was not executed.')
+            return metadataText
+        }
+
         // Setup params for downstream job & execute
         String shortJobName = env.JOB_NAME.split('/').last()
         String copyFileFilter = "${shortJobName}_${env.BUILD_NUMBER}_version.txt"
@@ -1587,7 +1612,7 @@ def buildScriptsAssemble(
         } // context.withEnv(buildConfigEnvVars)
         String versionOut
         if (buildConfig.BUILD_ARGS.contains('--cross-compile')) {
-            context.println "[WARNING] Don't read faked version.txt on cross compiled build! Archiving early and running downstream job to retrieve java version..."
+            context.println "[INFO] Reading cross-build version information after archiving artifacts..."
             versionOut = readCrossCompiledVersionString()
         } else {
             versionOut = context.readFile('workspace/target/metadata/version.txt')
@@ -1829,7 +1854,7 @@ def buildScriptsAssemble(
                         // Run a downstream job on riscv machine that returns the java version. Otherwise, just read the version.txt
                         String versionOut
                             if (buildConfig.BUILD_ARGS.contains('--cross-compile')) {
-                            context.println "[WARNING] Don't read faked version.txt on cross compiled build! Archiving early and running downstream job to retrieve java version..."
+                            context.println "[INFO] Reading cross-build version information after archiving artifacts..."
                             versionOut = readCrossCompiledVersionString()
                         } else {
                             versionOut = context.readFile('workspace/target/metadata/version.txt')
@@ -1952,6 +1977,59 @@ def buildScriptsAssemble(
         // Append to existing build description if not null
         def tmpDesc = (context.currentBuild.description) ? context.currentBuild.description + '<br>' : ''
         context.currentBuild.description = tmpDesc + "<a href=${context.JENKINS_URL}computer/${context.NODE_NAME}>${context.NODE_NAME}</a>"
+    }
+
+    static Map<String, String> releaseProperties(String text) {
+        Map<String, String> properties = [:]
+        text.readLines().each { line ->
+            String[] fields = line.split('=', 2)
+            if (fields.size() == 2) {
+                String value = fields[1].trim()
+                if (value.startsWith('"') && value.endsWith('"') && value.length() >= 2) {
+                    value = value.substring(1, value.length() - 1)
+                }
+                properties[fields[0].trim()] = value
+            }
+        }
+        return properties
+    }
+
+    static String releaseRuntimeVersion(String text) {
+        Map<String, String> properties = releaseProperties(text)
+        String version = properties['JAVA_RUNTIME_VERSION'] ?: properties['JAVA_VERSION']
+        if (!version) {
+            throw new IllegalArgumentException('Missing JAVA_RUNTIME_VERSION or JAVA_VERSION in target release metadata')
+        }
+        return version
+    }
+
+    static boolean shouldUseReleaseMetadata(Map config, Map defaults) {
+        return config.JAVA_TO_BUILD == 'jdk25u' && config.VARIANT == 'dragonwell' &&
+            config.TARGET_OS == 'linux' && config.ARCHITECTURE == 'riscv64' &&
+            (config.BUILD_ARGS ?: '').contains('--cross-compile') &&
+            shouldSkipPostBuildValidation(config, defaults)
+    }
+
+    // Docker run options (for example -e and -v) must not be passed to docker pull.
+    static String dockerPullArguments(String runArguments) {
+        List<String> tokens = (runArguments ?: '').tokenize(' ')
+        List<String> pullArguments = []
+        for (int i = 0; i < tokens.size(); i++) {
+            String token = tokens[i]
+            if (token == '--platform') {
+                if (i + 1 >= tokens.size() || tokens[i + 1].startsWith('-')) {
+                    throw new IllegalArgumentException('--platform requires a value')
+                }
+                pullArguments.add(token)
+                pullArguments.add(tokens[++i])
+            } else if (token.startsWith('--platform=')) {
+                if (token == '--platform=') {
+                    throw new IllegalArgumentException('--platform requires a value')
+                }
+                pullArguments.add(token)
+            }
+        }
+        return pullArguments.join(' ')
     }
 
     // Temporary global bypass includes release builds; targeted skips remain non-release only.
@@ -2125,6 +2203,7 @@ def buildScriptsAssemble(
 
                             // Target docker image to use, this may get aliased to a target tag using docker tag as target cannot contain a digest
                             def docker_image_target = buildConfig.DOCKER_IMAGE
+                            String dockerPullArgs = dockerPullArguments(buildConfig.DOCKER_ARGS as String)
 
                             if (!("${docker_image_target}".contains('rhel'))) {
                                 // Pull the docker image from DockerHub
@@ -2132,8 +2211,8 @@ def buildScriptsAssemble(
                                     context.timeout(time: buildTimeouts.DOCKER_PULL_TIMEOUT, unit: 'HOURS') {
                                         if (buildConfig.DOCKER_CREDENTIAL) {
                                             context.docker.withRegistry(buildConfig.DOCKER_REGISTRY, buildConfig.DOCKER_CREDENTIAL) {
-                                                if (buildConfig.DOCKER_ARGS) {
-                                                    context.sh(script: "docker pull ${docker_image_target} ${buildConfig.DOCKER_ARGS}")
+                                                if (dockerPullArgs) {
+                                                    context.sh(script: "docker pull ${docker_image_target} ${dockerPullArgs}")
                                                 } else {
                                                     context.docker.image(docker_image_target).pull()
                                                 }
@@ -2155,8 +2234,8 @@ def buildScriptsAssemble(
                                             }
                                             context.sh(script: "docker tag '${long_docker_image_name}${source_tag}' '${docker_image_target}'", returnStdout:false)
                                         } else {
-                                            if (buildConfig.DOCKER_ARGS) {
-                                                context.sh(script: "docker pull ${docker_image_target} ${buildConfig.DOCKER_ARGS}")
+                                            if (dockerPullArgs) {
+                                                context.sh(script: "docker pull ${docker_image_target} ${dockerPullArgs}")
                                             } else {
                                                 context.docker.image(docker_image_target).pull()
                                             }

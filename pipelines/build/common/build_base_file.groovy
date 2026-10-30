@@ -160,10 +160,6 @@ class Builder implements Serializable {
             cleanWsAfter = platformCleanWorkspaceAfterBuild
         }
             
-        if ("${platformConfig.arch}".contains('riscv64')) {
-            additionalNodeLabels = "${additionalNodeLabels}&&riscv64build"
-        }
-
         // We need to ensure that _adopt is stripped from any tags used in hotspot variant builds, as *_adopt tags do not exist upstream.
         def adjustedScmReference = scmReference
         if (variant.equals("hotspot")) {
@@ -561,11 +557,11 @@ class Builder implements Serializable {
     The param is formatted like this because we need to download and source the file from the bash scripts.
     */
     def getPlatformSpecificConfigPath(Map<String, ?> configuration) {
-        def splitUserUrl = ((String)DEFAULTS_JSON['repository']['build_url']) - ('.git').split('/')
+        def splitUserUrl = (((String)DEFAULTS_JSON['repository']['build_url']) - '.git').split('/')
         // e.g. https://github.com/adoptium/temurin-build.git will produce adoptium/temurin-build
         String userOrgRepo = "${splitUserUrl[splitUserUrl.size() - 2]}/${splitUserUrl[splitUserUrl.size() - 1]}"
 
-        def buildRef = configuration.buildRef ?: DEFAULTS_JSON['repository']['build_branch']
+        def buildRef = buildReference ?: configuration.buildRef ?: DEFAULTS_JSON['repository']['build_branch']
         // e.g. adoptium/temurin-build/master/build-farm/platform-specific-configurations
         def platformSpecificConfigPath = "${userOrgRepo}/${buildRef}/${DEFAULTS_JSON['configDirectories']['platform']}"
         if (configuration.containsKey('platformSpecificConfigPath')) {
@@ -583,6 +579,11 @@ class Builder implements Serializable {
         def buildTag = 'build'
         def labels = "${buildTag}"
 
+        // Cross builds use the host architecture; only native RISC-V needs dedicated nodes.
+        if ("${configuration.arch}".contains('riscv64') && getArchLabel(configuration, variant) == configuration.arch) {
+            labels += '&&riscv64build'
+        }
+
         if (configuration.containsKey('additionalNodeLabels')) {
             def additionalNodeLabels
 
@@ -595,6 +596,13 @@ class Builder implements Serializable {
             if (additionalNodeLabels != null) {
                 labels = "${additionalNodeLabels}&&${labels}"
             }
+        }
+
+        // A per-run restriction keeps the existing OS/architecture/build labels intact.
+        String target = "${configuration.os}-${configuration.arch}-${variant}".toString()
+        def nodeRestriction = DEFAULTS_JSON?.buildNodeLabels?.get(target)
+        if (nodeRestriction) {
+            labels += "&&(${nodeRestriction})"
         }
 
         return labels
