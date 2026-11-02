@@ -117,6 +117,8 @@ class Builder implements Serializable {
 
         def dockerImage = getDockerImage(platformConfig, variant)
 
+        def osLabel = getHostOsLabel(platformConfig.os as String, dockerImage as String)
+
         def dockerArgs = getDockerArgs(platformConfig, variant)
 
         def dockerFile = getDockerFile(platformConfig, variant)
@@ -160,10 +162,6 @@ class Builder implements Serializable {
             cleanWsAfter = platformCleanWorkspaceAfterBuild
         }
             
-        if ("${platformConfig.arch}".contains('riscv64')) {
-            additionalNodeLabels = "${additionalNodeLabels}&&riscv64build"
-        }
-
         // We need to ensure that _adopt is stripped from any tags used in hotspot variant builds, as *_adopt tags do not exist upstream.
         def adjustedScmReference = scmReference
         if (variant.equals("hotspot")) {
@@ -185,7 +183,7 @@ class Builder implements Serializable {
             AQA_REF: aqaReference,
             AQA_AUTO_GEN: aqaAutoGen,
             BUILD_ARGS: buildArgs,
-            NODE_LABEL: "${additionalNodeLabels}&&${platformConfig.os}&&${archLabel}",
+            NODE_LABEL: "${additionalNodeLabels}&&${osLabel}&&${archLabel}",
             ADDITIONAL_TEST_LABEL: "${additionalTestLabels}",
             ADDITIONAL_TEST_PARAMS: additionalTestParams,
             KEEP_TEST_REPORTDIR: keepTestReportDir,
@@ -431,6 +429,11 @@ class Builder implements Serializable {
         return overrideDocker
 }
 
+    // Alpine containers use Linux Docker hosts; native builds retain their OS label.
+    static String getHostOsLabel(String targetOs, String dockerImage) {
+        return targetOs == 'alpine-linux' && dockerImage ? 'linux' : targetOs
+    }
+
     def getArchLabel(Map<String, ?> configuration, String variant) {
         // Default to arch
         def archLabelVal = configuration.arch
@@ -561,11 +564,11 @@ class Builder implements Serializable {
     The param is formatted like this because we need to download and source the file from the bash scripts.
     */
     def getPlatformSpecificConfigPath(Map<String, ?> configuration) {
-        def splitUserUrl = ((String)DEFAULTS_JSON['repository']['build_url']) - ('.git').split('/')
+        def splitUserUrl = (((String)DEFAULTS_JSON['repository']['build_url']) - '.git').split('/')
         // e.g. https://github.com/adoptium/temurin-build.git will produce adoptium/temurin-build
         String userOrgRepo = "${splitUserUrl[splitUserUrl.size() - 2]}/${splitUserUrl[splitUserUrl.size() - 1]}"
 
-        def buildRef = configuration.buildRef ?: DEFAULTS_JSON['repository']['build_branch']
+        def buildRef = buildReference ?: configuration.buildRef ?: DEFAULTS_JSON['repository']['build_branch']
         // e.g. adoptium/temurin-build/master/build-farm/platform-specific-configurations
         def platformSpecificConfigPath = "${userOrgRepo}/${buildRef}/${DEFAULTS_JSON['configDirectories']['platform']}"
         if (configuration.containsKey('platformSpecificConfigPath')) {
@@ -582,6 +585,11 @@ class Builder implements Serializable {
     def formAdditionalBuildNodeLabels(Map<String, ?> configuration, String variant) {
         def buildTag = 'build'
         def labels = "${buildTag}"
+
+        // Cross builds use the host architecture; only native RISC-V needs dedicated nodes.
+        if ("${configuration.arch}".contains('riscv64') && getArchLabel(configuration, variant) == configuration.arch) {
+            labels += '&&riscv64build'
+        }
 
         if (configuration.containsKey('additionalNodeLabels')) {
             def additionalNodeLabels

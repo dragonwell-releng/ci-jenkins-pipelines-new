@@ -122,6 +122,11 @@ class Regeneration implements Serializable {
         return configureArgs
     }
 
+    // Alpine containers use Linux Docker hosts; native builds retain their OS label.
+    static String getHostOsLabel(String targetOs, String dockerImage) {
+        return targetOs == 'alpine-linux' && dockerImage ? 'linux' : targetOs
+    }
+
     def getArchLabel(Map<String, ?> configuration, String variant) {
         // Default to arch
         def archLabelVal = configuration.arch
@@ -247,7 +252,7 @@ class Regeneration implements Serializable {
     This determines where the location of the operating system setup files are in comparison to the repository root. The param is formatted like this because we need to download and source the file from the bash scripts.
     */
     def getPlatformSpecificConfigPath(Map<String, ?> configuration) {
-        def splitUserUrl = ((String)DEFAULTS_JSON['repository']['build_url']) - ('.git').split('/')
+        def splitUserUrl = (((String)DEFAULTS_JSON['repository']['build_url']) - '.git').split('/')
         // e.g. https://github.com/adoptium/temurin-build.git will produce adoptium/temurin-build
         String userOrgRepo = "${splitUserUrl[splitUserUrl.size() - 2]}/${splitUserUrl[splitUserUrl.size() - 1]}"
 
@@ -425,6 +430,8 @@ class Regeneration implements Serializable {
 
             def dockerImage = getDockerImage(platformConfig, variant)
 
+            def osLabel = getHostOsLabel(platformConfig.os as String, dockerImage as String)
+
             def dockerArgs = getDockerArgs(platformConfig, variant)
 
             def dockerFile = getDockerFile(platformConfig, variant)
@@ -462,7 +469,7 @@ class Regeneration implements Serializable {
                 AQA_REF: '',
                 AQA_AUTO_GEN: false,
                 BUILD_ARGS: buildArgs,
-                NODE_LABEL: "${additionalNodeLabels}&&${platformConfig.os}&&${archLabel}",
+                NODE_LABEL: "${additionalNodeLabels}&&${osLabel}&&${archLabel}",
                 ADDITIONAL_TEST_LABEL: "${additionalTestLabels}",
                 KEEP_TEST_REPORTDIR: false,
                 ACTIVE_NODE_TIMEOUT: '',

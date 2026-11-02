@@ -148,10 +148,12 @@ class Config25 {
         riscv64Linux      :  [
                 os                  : 'linux',
                 arch                : 'riscv64',
-                arch                : 'riscv64',
-                dockerImage         : 'alibabadragonwelljdk/centos7_gcc7_build_image:riscv64-gcc14',
+                dockerImage         : 'alibabadragonwelljdk/dragonwell25-riscv64-build:anolis23.5-rva23-v1',
+                // Clear the legacy image ISA default; linux.sh selects the target ISA.
+                dockerArgs          : '-e RISCV_MARCH=',
                 crossCompile        : 'x64',
-                configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/riscv_toolchain_gcc14/sysroot/',
+                // Toolchain, sysroot and ISA are selected by openjdk-build-new linux.sh.
+                configureArgs       : '',
                 buildArgs           : [
                      'dragonwell'   : '--create-sbom --cross-compile'
                 ],
