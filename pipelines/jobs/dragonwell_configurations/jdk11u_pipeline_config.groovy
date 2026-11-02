@@ -133,7 +133,10 @@ class Config11 {
             aarch64Linux  : [
                     os           : 'linux',
                     arch         : 'aarch64',
-                    dockerImage  : 'joeylee97/dragonwell_centos7_gcc9_build_image',
+                    dockerImage  : 'adoptopenjdk/centos7_build_image',
+                    dockerFile   : [
+                            dragonwell: 'pipelines/build/dockerFiles/dragonwell11_aarch64.dockerfile'
+                    ],
                     test                 : [
                             // TODO: enable tests
                             nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
