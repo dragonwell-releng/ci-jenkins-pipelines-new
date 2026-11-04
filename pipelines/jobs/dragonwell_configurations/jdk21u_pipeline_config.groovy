@@ -169,12 +169,15 @@ class Config21 {
 
         riscv64Linux      :  [
                 os           : 'linux',
-                dockerImage  : 'alibabadragonwelljdk/centos7_gcc7_build_image',
                 arch         : 'riscv64',
-                crossCompile : 'x64',
-                configureArgs: '--openjdk-target=riscv64-unknown-linux-gnu --with-sysroot=/opt/fedora28_riscv_root',
+                // Match the upstream native RISC-V build: the target-architecture
+                // container runs under qemu-static on a compatible build host.
+                crossCompile : 'qemustatic',
+                dockerImage  : 'adoptopenjdk/ubuntu2004_build_image:linux-riscv64',
+                dockerArgs   : '--platform linux/riscv64',
+                configureArgs: '--enable-dtrace',
                 buildArgs           : [
-                     'dragonwell'   : '--create-sbom --cross-compile'
+                     'dragonwell'   : '--create-sbom --use-adoptium-devkit gcc-14.2.0-Fedora_28-b00'
                 ],
                 test                : 'default',
         ],

@@ -27,6 +27,12 @@ class BuildConfigurationRoutingTest {
         assertEquals('x64', builder.getArchLabel(platform, 'dragonwell'))
     }
 
+    @Test void qemuStaticRiscvContainerUsesEmulationHosts() {
+        Map platform = [arch: 'riscv64', crossCompile: 'qemustatic']
+        assertEquals('build', builder.formAdditionalBuildNodeLabels(platform, 'dragonwell').toString())
+        assertEquals('qemustatic', builder.getArchLabel(platform, 'dragonwell'))
+    }
+
     @Test void nativeRiscvKeepsDedicatedNodes() {
         Map platform = [arch: 'riscv64']
         assertEquals('build&&riscv64build', builder.formAdditionalBuildNodeLabels(platform, 'dragonwell').toString())
