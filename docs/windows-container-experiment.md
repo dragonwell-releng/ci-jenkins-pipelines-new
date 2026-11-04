@@ -99,4 +99,37 @@ and a passing Windows SDK compile smoke test.
 
 New local image: `dragonwell/windows2022-build:synced-vs1714-20261104`.
 Image ID: `sha256:a62faecf7d6be291ee454c0991e5a5f0764acb9b30534c32452b34e1dc368369`.
-Default user: `ContainerUser`. A full JDK rebuild remains pending.
+Default user: `ContainerUser`.
+
+## JDK17 rebuild verification
+
+[#6](http://ci.dragonwell-jdk.io/job/build-scripts-new/job/windows-synced-image-jdk17/6/console)
+uses pipeline commit `68847141`, build-script commit `68a13a2e`, and the image
+above, with the Dragonwell source ref unchanged. Configure selected compiler
+19.44.35229. The previously failing `test_enableIf.cpp` compiled successfully.
+All requested make targets (`product-images legacy-jre-image test-image
+static-libs-image`) completed, followed by `Build complete` at 19:23 CST on
+2026-11-04. The generated JVM printed Dragonwell 17.0.20.0.21+8-GA / 17.0.20+8.
+
+The build log confirms JDK, JRE, testimage, debugimage, and static-libs ZIP files
+were moved into `workspace/target`, with suffix
+`_x64_windows_dragonwell_2026-11-04-09-39.zip`. SBOM generation completed and
+`build.sh` printed `All done!` at 19:27:11 CST.
+
+Jenkins archived the artifacts successfully between 19:39 and 19:41 CST.
+The build page lists the JDK ZIP (189,684,921 bytes / 180.90 MiB) and JRE ZIP
+(43,418,399 bytes / 41.41 MiB), plus debugimage, testimage, static-libs and SBOM.
+The JDK SHA-256 is
+`f502c0ac97c90b7875daa7bdbc72c48bfe6d84d246ec51047d4f773e704a549a`.
+
+The overall job finished FAILURE at 19:41:40 solely after the subsequent
+`sbom_validator_job #50` failed validation. The requested build/package goal
+passed; SBOM validation was explicitly outside the acceptance requirement.
+Artifacts remain available on the
+[build page](http://ci.dragonwell-jdk.io/job/build-scripts-new/job/windows-synced-image-jdk17/6/).
+The post-build workspace disk-usage scan (`du -sk "$WORKSPACE"` in
+`build-farm/make-adopt-build-farm.sh`) took approximately 12 minutes before
+metadata generation and archiving; it was not a compilation hang.
+This result establishes JDK17 compilation and packaging with unchanged source;
+it does not validate other JDK versions, test-suite execution, or publishing the
+local image to a registry.
