@@ -164,9 +164,9 @@ class Config25 {
         aarch64Windows: [
                 os                  : 'windows',
                 arch                : 'aarch64',
-                dockerImage         : 'docker.io/alibabadragonwelljdk/windows2022_build_image:inputs-6c37aaa4524baea96afeabbc4d0f8e24a4b60f42da0a0fb9cc37bb3abfbb98c0',
-                dockerRegistry      : '',
-                dockerCredential    : '',
+                dockerImage         : 'windows2022_build_image',
+                dockerRegistry      : 'https://adoptium.azurecr.io',
+                dockerCredential    : 'bbb9fa70-a1de-4853-b564-5f02193329ac',
                 crossCompile        : 'x64',
                 additionalNodeLabels: 'win2022&&vs2022',
                 test                : 'default',

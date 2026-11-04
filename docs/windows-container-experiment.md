@@ -22,4 +22,19 @@ USE_ADOPT_SHELL_SCRIPTS=false and ENABLE_SIGNER=false. Run versions sequentially
 because upstream uses a shared Windows workspace. Verify JDK17 first; record
 compile/package results separately from SBOM and other post-build gates.
 
-Validation: branch changes prepared; full Dragonwell build pending.
+## Validation in progress (2026-11-04)
+
+Upstream pipeline revision `4619c4d1530c638b5e2f6d9d614984e76afce9d7` retains
+the JDK17 Windows image/devkit arguments used here. The companion `windows.sh`
+matches temurin-build `d60bae438ce7e28831ba454d4e094851655d61ac`.
+
+Isolated job: `build-scripts-new/windows-synced-image-jdk17`.
+- #1 was cancelled in queue: quote the exact node name in label expressions.
+- #2 entered the validated container but failed before compilation because HOME
+  resolved to `/` and Git could not write `//.gitconfig`.
+- #3 sets `-e HOME=/cygdrive/c/Users/ContainerUser`. Git initialization and boot JDK
+  discovery passed; Dragonwell source cloning is in progress. No package is verified yet.
+
+The source ref is unchanged from the prior experiment:
+`dragonwell-standard-17.0.20.0.21+8_jdk-17.0.20-ga`.
+Build output is retained for diagnosis (`CLEAN_WORKSPACE_AFTER=false`).
