@@ -62,4 +62,26 @@ Repaired local image: `dragonwell/windows2022-build:synced-perlbase-20261104`
 
 Image ID: `sha256:3e5b3168e0ac30194b8e84d31bf16c76d1f79cbfe4bc5271c43e9db4a7b58513`.
 
-Full JDK rebuild with this image is pending.
+The original Cygwin setup log selected and downloaded `perl_base 5.44.0-1`,
+then failed to create paths while extracting it after removing 5.40.3. This was
+an incomplete upgrade, not a missing dependency declaration. The exact cause of
+those path-creation errors is not yet established.
+
+[#4](http://ci.dragonwell-jdk.io/job/build-scripts-new/job/windows-synced-image-jdk17/4/console)
+passed cacerts generation with the repaired image, then failed at configure with
+`Cannot locate a valid Visual Studio installation`. A fresh container showed the
+VS installation and vcvars64.bat existed, but `cygpath -m -s` still returned paths
+containing spaces.
+
+The isolated pipeline now initializes short names for Program Files (x86),
+Microsoft Visual Studio and Windows Kits in the running container. The host
+checks the container image and default user before using ContainerAdministrator
+for this setup only; the actual build remains ContainerUser. This workaround is
+scoped to the exact experimental image tag and should not be generalized without
+review. It does not modify Dragonwell source or the VS toolchain.
+
+[#5](http://ci.dragonwell-jdk.io/job/build-scripts-new/job/windows-synced-image-jdk17/5/console)
+uses pipeline commit `03721293`. Runtime initialization and ContainerUser short
+path validation passed. Configure completed at 17:02:54 CST with MSVC
+14.42.34433 / compiler 19.42.34444. Compilation started at 17:03:12.
+Final compilation and packaging results are still pending.
