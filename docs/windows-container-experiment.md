@@ -93,5 +93,10 @@ A derived image upgrading to VS2022 17.14 / MSVC 14.44 is being built without
 changing Dragonwell source. Its recipe is in
 `pipelines/build/dragonwell/windows-vs-repair`; the Microsoft installer signature
 is checked, and installation must finish with the expected VS and MSVC versions.
-The upgrade retains the current Perl-repaired base image. Image completion and a
-new full JDK build remain pending.
+The upgrade retains the current Perl-repaired base image. Image construction
+completed successfully with VS 17.14.37806.7 / MSVC 14.44.35207, installer exit 0,
+and a passing Windows SDK compile smoke test.
+
+New local image: `dragonwell/windows2022-build:synced-vs1714-20261104`.
+Image ID: `sha256:a62faecf7d6be291ee454c0991e5a5f0764acb9b30534c32452b34e1dc368369`.
+Default user: `ContainerUser`. A full JDK rebuild remains pending.

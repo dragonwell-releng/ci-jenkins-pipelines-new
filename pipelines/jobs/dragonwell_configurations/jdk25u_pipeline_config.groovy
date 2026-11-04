@@ -67,7 +67,7 @@ class Config25 {
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',
-                dockerImage         : 'dragonwell/windows2022-build:synced-perlbase-20261104',
+                dockerImage         : 'dragonwell/windows2022-build:synced-vs1714-20261104',
                 dockerArgs          : '-e HOME=/cygdrive/c/Users/ContainerUser',
                 dockerRegistry      : '',
                 dockerCredential    : '',
