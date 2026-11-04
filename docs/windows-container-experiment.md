@@ -84,4 +84,14 @@ review. It does not modify Dragonwell source or the VS toolchain.
 uses pipeline commit `03721293`. Runtime initialization and ContainerUser short
 path validation passed. Configure completed at 17:02:54 CST with MSVC
 14.42.34433 / compiler 19.42.34444. Compilation started at 17:03:12.
-Final compilation and packaging results are still pending.
+The first actual compilation error was C2244 at
+`test/hotspot/gtest/metaprogramming/test_enableIf.cpp:73`, at 17:06:28 CST.
+The job finished FAILURE at 17:07:06 without JDK packages. This reproduces the
+MSVC 14.42 failure from the earlier container trial.
+
+A derived image upgrading to VS2022 17.14 / MSVC 14.44 is being built without
+changing Dragonwell source. Its recipe is in
+`pipelines/build/dragonwell/windows-vs-repair`; the Microsoft installer signature
+is checked, and installation must finish with the expected VS and MSVC versions.
+The upgrade retains the current Perl-repaired base image. Image completion and a
+new full JDK build remain pending.
