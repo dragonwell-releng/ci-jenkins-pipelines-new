@@ -22,7 +22,7 @@ USE_ADOPT_SHELL_SCRIPTS=false and ENABLE_SIGNER=false. Run versions sequentially
 because upstream uses a shared Windows workspace. Verify JDK17 first; record
 compile/package results separately from SBOM and other post-build gates.
 
-## Validation in progress (2026-11-04)
+## Actual build result (2026-11-04)
 
 Upstream pipeline revision `4619c4d1530c638b5e2f6d9d614984e76afce9d7` retains
 the JDK17 Windows image/devkit arguments used here. The companion `windows.sh`
@@ -32,8 +32,19 @@ Isolated job: `build-scripts-new/windows-synced-image-jdk17`.
 - #1 was cancelled in queue: quote the exact node name in label expressions.
 - #2 entered the validated container but failed before compilation because HOME
   resolved to `/` and Git could not write `//.gitconfig`.
-- #3 sets `-e HOME=/cygdrive/c/Users/ContainerUser`. Git initialization and boot JDK
-  discovery passed; Dragonwell source cloning is in progress. No package is verified yet.
+- [#3](http://ci.dragonwell-jdk.io/job/build-scripts-new/job/windows-synced-image-jdk17/3/console)
+  sets `-e HOME=/cygdrive/c/Users/ContainerUser`. Git initialization, boot JDK
+  discovery, source checkout (`a471c10eebf`) and matching devkit selection passed.
+  The first actual failure is `Can't locate Encode.pm in @INC` from
+  `mk-ca-bundle.pl` while generating Mozilla cacerts, at 15:58:22 CST.
+  Cygwin Perl is 5.44. No C++ compilation or JDK packaging was reached.
+  `No artifacts found ... workspace/target/*` is a secondary archive failure.
+
+Conclusion: the container execution path works, but this image cannot yet build
+Dragonwell17 unchanged. Its Cygwin Perl runtime needs the required modules (starting
+with Encode, supplied by perl_base) before another full build can establish compiler
+compatibility. Toolchain compatibility and JDK8/11/21/25 builds remain unverified.
+Do not interpret successful image-sync validation as a successful JDK build.
 
 The source ref is unchanged from the prior experiment:
 `dragonwell-standard-17.0.20.0.21+8_jdk-17.0.20-ga`.
