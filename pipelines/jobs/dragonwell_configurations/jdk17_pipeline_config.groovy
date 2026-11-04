@@ -76,8 +76,11 @@ class Config17 {
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',
-                additionalNodeLabels: 'win2012&&vs2019',
-                buildArgs: '--jdk-boot-dir /cygdrive/c/Jenkins/workspace/zulu17/ --create-sbom',
+                dockerImage         : 'docker.io/alibabadragonwelljdk/windows2022_build_image:inputs-6c37aaa4524baea96afeabbc4d0f8e24a4b60f42da0a0fb9cc37bb3abfbb98c0',
+                dockerRegistry      : '',
+                dockerCredential    : '',
+                additionalNodeLabels: 'win2022&&vs2022',
+                buildArgs: '--create-jre-image --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742',
                 test                : 'default'
         ],
 

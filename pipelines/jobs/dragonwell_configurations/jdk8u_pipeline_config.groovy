@@ -41,14 +41,18 @@ class Config8 {
             x64Windows    : [
                     os                  : 'windows',
                     arch                : 'x64',
+                    dockerImage         : 'docker.io/alibabadragonwelljdk/windows2022_build_image:inputs-6c37aaa4524baea96afeabbc4d0f8e24a4b60f42da0a0fb9cc37bb3abfbb98c0',
+                    dockerRegistry      : '',
+                    dockerCredential    : '',
+                    configureArgs       : [dragonwell: '--disable-ccache'],
                     additionalNodeLabels: [
                             hotspot   : 'win2012',
                             corretto  : 'win2012',
                             openj9    : 'win2012&&mingw-cygwin',
-                            dragonwell: 'win2012&&vs2017'
+                            dragonwell: 'win2022&&vs2022'
                     ],
                     buildArgs           : [
-                        'dragonwell'   : '--create-sbom'
+                        'dragonwell'   : '--create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                     ],
                     test                : 'default'
             ],

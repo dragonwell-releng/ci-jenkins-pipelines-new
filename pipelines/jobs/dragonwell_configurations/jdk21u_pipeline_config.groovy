@@ -68,15 +68,17 @@ class Config21 {
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',
+                dockerImage         : 'docker.io/alibabadragonwelljdk/windows2022_build_image:inputs-6c37aaa4524baea96afeabbc4d0f8e24a4b60f42da0a0fb9cc37bb3abfbb98c0',
+                dockerRegistry      : '',
+                dockerCredential    : '',
                 additionalNodeLabels: 'win2022&&vs2022',
                 test                : 'default',
                 reproducibleCompare : [
                         'temurin'   : true
                 ],
-                configureArgs       : "--with-ucrt-dll-dir='C:/progra~2/wi3cf2~1/10/Redist/10.0.22621.0/ucrt/DLLs/x64'",
                 buildArgs           : [
                         'temurin'   : '--create-jre-image --create-sbom',
-                     'dragonwell'   : '--create-sbom'
+                     'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                 ]
         ],
 

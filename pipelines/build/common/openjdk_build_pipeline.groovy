@@ -2205,7 +2205,16 @@ def buildScriptsAssemble(
                             def docker_image_target = buildConfig.DOCKER_IMAGE
                             String dockerPullArgs = dockerPullArguments(buildConfig.DOCKER_ARGS as String)
 
-                            if (!("${docker_image_target}".contains('rhel'))) {
+                            // Experimental image is validated locally and has not been published.
+                            def localWindowsTrial = buildConfig.TARGET_OS == 'windows' &&
+                                docker_image_target == 'docker.io/alibabadragonwelljdk/windows2022_build_image:inputs-6c37aaa4524baea96afeabbc4d0f8e24a4b60f42da0a0fb9cc37bb3abfbb98c0'
+                            if (localWindowsTrial) {
+                                def imageId = context.sh(script: "docker inspect --format={{.Id}} ${docker_image_target}", returnStdout: true).trim()
+                                if (imageId != 'sha256:e506b5483412b1be888bd9f1869f2313b748c070f121d4de1f26d60ee02d7668') {
+                                    context.error('Unexpected local Windows trial image')
+                                }
+                            }
+                            if (!("${docker_image_target}".contains('rhel')) && !localWindowsTrial) {
                                 // Pull the docker image from DockerHub
                                 try {
                                     context.timeout(time: buildTimeouts.DOCKER_PULL_TIMEOUT, unit: 'HOURS') {
