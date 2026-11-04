@@ -76,7 +76,7 @@ class Config17 {
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',
-                dockerImage         : 'docker.io/alibabadragonwelljdk/windows2022_build_image:inputs-6c37aaa4524baea96afeabbc4d0f8e24a4b60f42da0a0fb9cc37bb3abfbb98c0',
+                dockerImage         : 'dragonwell/windows2022-build:synced-perlbase-20261104',
                 dockerArgs          : '-e HOME=/cygdrive/c/Users/ContainerUser',
                 dockerRegistry      : '',
                 dockerCredential    : '',

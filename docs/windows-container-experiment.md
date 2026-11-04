@@ -49,3 +49,17 @@ Do not interpret successful image-sync validation as a successful JDK build.
 The source ref is unchanged from the prior experiment:
 `dragonwell-standard-17.0.20.0.21+8_jdk-17.0.20-ga`.
 Build output is retained for diagnosis (`CLEAN_WORKSPACE_AFTER=false`).
+
+## Perl repair
+
+Live inspection found `perl 5.44.0-1` installed but no `perl_base` entry and no
+`Encode.pm` file. Installing `perl_base=5.44.0-1` in a derived image restored all
+cacerts modules. The repair Dockerfile/script are under
+`pipelines/build/dragonwell/windows-perl-repair`. The base image and VS toolchain
+are unchanged. Validation passed both during build and in a fresh ContainerUser run.
+
+Repaired local image: `dragonwell/windows2022-build:synced-perlbase-20261104`
+
+Image ID: `sha256:3e5b3168e0ac30194b8e84d31bf16c76d1f79cbfe4bc5271c43e9db4a7b58513`.
+
+Full JDK rebuild with this image is pending.

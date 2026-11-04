@@ -2207,10 +2207,10 @@ def buildScriptsAssemble(
 
                             // Experimental image is validated locally and has not been published.
                             def localWindowsTrial = buildConfig.TARGET_OS == 'windows' &&
-                                docker_image_target == 'docker.io/alibabadragonwelljdk/windows2022_build_image:inputs-6c37aaa4524baea96afeabbc4d0f8e24a4b60f42da0a0fb9cc37bb3abfbb98c0'
+                                docker_image_target == 'dragonwell/windows2022-build:synced-perlbase-20261104'
                             if (localWindowsTrial) {
                                 def imageId = context.sh(script: "docker inspect --format={{.Id}} ${docker_image_target}", returnStdout: true).trim()
-                                if (imageId != 'sha256:e506b5483412b1be888bd9f1869f2313b748c070f121d4de1f26d60ee02d7668') {
+                                if (imageId != 'sha256:3e5b3168e0ac30194b8e84d31bf16c76d1f79cbfe4bc5271c43e9db4a7b58513') {
                                     context.error('Unexpected local Windows trial image')
                                 }
                             }
