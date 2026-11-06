@@ -58,7 +58,7 @@ class Config11 {
                     ],
                     buildArgs           : [
                             hotspot: '--jvm-variant client,server',
-                            dragonwell : '--jvm-variant client,server --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
+                            dragonwell : '--jvm-variant server --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                     ],
                     test                : [
                             nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
