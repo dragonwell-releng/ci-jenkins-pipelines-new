@@ -48,6 +48,7 @@ class Builder implements Serializable {
     boolean enableSigner
     boolean publish
     boolean release
+    boolean skipReleasePublishDryRun
     String releaseType
     String scmReference
     String buildReference
@@ -918,6 +919,7 @@ class Builder implements Serializable {
             context.echo "Use Adopt's Scripts: ${useAdoptShellScripts}"
             context.echo "Publish: ${publish}"
             context.echo "Release: ${release}"
+            context.echo "Skip release publish dry run: ${skipReleasePublishDryRun}"
             context.echo "OpenJDK Tag/Branch name: ${scmReference}"
             context.echo "Temurin-build Tag/Branch name: ${buildReference}"
             context.echo "Ci-jenkins-pipeline Tag/Branch name: ${ciReference}"
@@ -1034,7 +1036,7 @@ class Builder implements Serializable {
                             }
                             context.println '[NODE SHIFT] OUT OF CONTROLLER NODE!'
 
-                            if (release && copyArtifactSuccess) {
+                            if (release && copyArtifactSuccess && !skipReleasePublishDryRun) {
                                 def (String releaseToolUrl, String releaseComment, String releaseWarning) = publishBinary(config, downstreamJob.getResult(), downstreamJob.getAbsoluteUrl())
                                 appendSummaryText(releaseSummary, "<li>${releaseWarning}<a href=${releaseToolUrl}> ${releaseComment} ${config.VARIANT} ${publishName} ${config.TARGET_OS} ${config.ARCHITECTURE}</a></li>")
                             }
@@ -1139,6 +1141,7 @@ return {
     String enableInstallers,
     String enableSigner,
     String releaseType,
+    String skipReleasePublishDryRun,
     String scmReference,
     String buildReference,
     String ciReference,
@@ -1205,6 +1208,7 @@ return {
             enableSigner: Boolean.parseBoolean(enableSigner),
             publish: publish,
             release: release,
+            skipReleasePublishDryRun: Boolean.parseBoolean(skipReleasePublishDryRun),
             releaseType: releaseType,
             scmReference: scmReference,
             buildReference: buildReference,
