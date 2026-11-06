@@ -1833,7 +1833,6 @@ def buildScriptsAssemble(
                                     context.println "openjdk_build_pipeline: calling MABF to do single pass build when USE_ADOPT_SHELL_SCRIPTS is false"
                                     batOrSh("bash ./${DEFAULTS_JSON['scriptDirectories']['buildfarm']}")
                                 }
-                                context.sh(script: "git config --global http.sslVerify false")
                                 context.println '[CHECKOUT] Reverting pre-build user temurin-build checkout...'
                                 repoHandler.checkoutUserPipelines(context)
                                 printGitRepoInfo()
