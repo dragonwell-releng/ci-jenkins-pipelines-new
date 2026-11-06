@@ -268,6 +268,7 @@ if (scmVars != null || configureBuild != null || buildConfigurations != null) {
             enableInstallers,
             enableSigner,
             releaseType,
+            params.skipReleasePublishDryRun,
             scmReference,
             buildReference,
             ciReference,
