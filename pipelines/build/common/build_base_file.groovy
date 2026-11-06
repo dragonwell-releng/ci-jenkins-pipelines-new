@@ -1208,7 +1208,9 @@ return {
             enableSigner: Boolean.parseBoolean(enableSigner),
             publish: publish,
             release: release,
-            skipReleasePublishDryRun: Boolean.parseBoolean(skipReleasePublishDryRun),
+            skipReleasePublishDryRun: skipReleasePublishDryRun instanceof Boolean
+                    ? skipReleasePublishDryRun
+                    : Boolean.parseBoolean(skipReleasePublishDryRun?.toString()),
             releaseType: releaseType,
             scmReference: scmReference,
             buildReference: buildReference,
