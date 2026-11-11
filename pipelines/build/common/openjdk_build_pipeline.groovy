@@ -2189,7 +2189,9 @@ def buildScriptsAssemble(
                                             context.ws(workspace) {
                                                 try {
                                                     context.println "Windows build cleaning" + context.WORKSPACE
-                                                    context.cleanWs notFailBuild: true
+                                                    // Remove read-only Git pack files before the host-side checkout.
+                                                    context.bat("rm -rf " + context.WORKSPACE + "/*")
+                                                    context.cleanWs disableDeferredWipeout: true, deleteDirs: true
                                                 } catch (e) {
                                                     context.println "Warning: Failed to clean ${e}"
                                                 }
