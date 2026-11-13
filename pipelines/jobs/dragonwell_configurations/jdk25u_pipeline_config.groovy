@@ -67,13 +67,15 @@ class Config25 {
         x64Windows: [
                 os                  : 'windows',
                 arch                : 'x64',
-                dockerImage         : '',
-                dockerRegistry      : '',
-                dockerCredential    : '',
-                additionalNodeLabels: 'win2025&&vs2022',
+                dockerImage         : [dragonwell: 'docker.io/alibabadragonwelljdk/windows2022_build_image:latest'],
+                dockerArgs          : [dragonwell: '-e HOME=/cygdrive/c/Users/ContainerUser'],
+                dockerNode          : [dragonwell: '"windows_2022rc_build4(47.76.90.84)"'],
+                dockerRegistry      : [dragonwell: ''],
+                dockerCredential    : [dragonwell: 'dockerhub-alibabadragonwelljdk'],
+                additionalNodeLabels: 'win2022&&vs2022',
                 test                : 'default',
                 buildArgs           : [
-                        'dragonwell'   : '--create-jre-image --create-sbom'
+                        'dragonwell'   : '--create-jre-image --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                 ]
         ],
 
