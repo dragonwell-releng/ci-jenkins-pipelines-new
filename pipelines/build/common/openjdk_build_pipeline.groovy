@@ -2189,7 +2189,9 @@ def buildScriptsAssemble(
                                             context.ws(workspace) {
                                                 try {
                                                     context.println "Windows build cleaning" + context.WORKSPACE
-                                                    context.cleanWs notFailBuild: true
+                                                    // Remove read-only Git pack files before the host-side checkout.
+                                                    context.bat("rm -rf " + context.WORKSPACE + "/*")
+                                                    context.cleanWs disableDeferredWipeout: true, deleteDirs: true
                                                 } catch (e) {
                                                     context.println "Warning: Failed to clean ${e}"
                                                 }
@@ -2205,11 +2207,26 @@ def buildScriptsAssemble(
                             def docker_image_target = buildConfig.DOCKER_IMAGE
                             String dockerPullArgs = dockerPullArguments(buildConfig.DOCKER_ARGS as String)
 
-                            if (!("${docker_image_target}".contains('rhel'))) {
+                            // Retain the validated local image for existing experiment configurations.
+                            def localWindowsTrial = buildConfig.TARGET_OS == 'windows' &&
+                                docker_image_target == 'dragonwell/windows2022-build:synced-vs1714-20261104'
+                            def managedWindowsImage = buildConfig.TARGET_OS == 'windows' &&
+                                docker_image_target == 'docker.io/alibabadragonwelljdk/windows2022_build_image:latest'
+                            if (localWindowsTrial) {
+                                def imageId = context.sh(script: "docker inspect --format={{.Id}} ${docker_image_target}", returnStdout: true).trim()
+                                if (imageId != 'sha256:a62faecf7d6be291ee454c0991e5a5f0764acb9b30534c32452b34e1dc368369') {
+                                    context.error('Unexpected local Windows trial image')
+                                }
+                            }
+                            if (!("${docker_image_target}".contains('rhel')) && !localWindowsTrial) {
                                 // Pull the docker image from DockerHub
                                 try {
                                     context.timeout(time: buildTimeouts.DOCKER_PULL_TIMEOUT, unit: 'HOURS') {
-                                        if (buildConfig.DOCKER_CREDENTIAL) {
+                                        if (managedWindowsImage) {
+                                            context.docker.withRegistry(buildConfig.DOCKER_REGISTRY, buildConfig.DOCKER_CREDENTIAL) {
+                                                context.docker.image(docker_image_target).pull()
+                                            }
+                                        } else if (buildConfig.DOCKER_CREDENTIAL) {
                                             context.docker.withRegistry(buildConfig.DOCKER_REGISTRY, buildConfig.DOCKER_CREDENTIAL) {
                                                 if (dockerPullArgs) {
                                                     context.sh(script: "docker pull ${docker_image_target} ${dockerPullArgs}")
@@ -2243,6 +2260,21 @@ def buildScriptsAssemble(
                                     }
                                 } catch (FlowInterruptedException e) {
                                     throw new Exception("[ERROR] Controller docker image pull timeout (${buildTimeouts.DOCKER_PULL_TIMEOUT} HOURS) has been reached. Exiting...")
+                                }
+                            }
+                            if (managedWindowsImage) {
+                                // Pin this build to the image just pulled, even if latest changes later.
+                                def pulledImageId = context.sh(script: "docker inspect --format={{.Id}} ${docker_image_target}", returnStdout: true).trim()
+                                if (!(pulledImageId ==~ /sha256:[0-9a-f]{64}/)) {
+                                    context.error('Cannot identify the pulled Windows build image')
+                                }
+                                docker_image_target = pulledImageId
+                                def imageMetadata = context.sh(
+                                    script: "docker inspect --format='{{.Config.User}} {{index .Config.Labels \"org.opencontainers.image.source\"}} {{index .Config.Labels \"org.opencontainers.image.revision\"}} {{index .Config.Labels \"io.dragonwell.sync-inputs\"}}' ${docker_image_target}",
+                                    returnStdout: true
+                                ).trim()
+                                if (!(imageMetadata ==~ /ContainerUser https:\/\/github\.com\/adoptium\/infrastructure\.git [0-9a-f]{40} [0-9a-f]{64}/)) {
+                                    context.error('Windows image is missing the image-maintenance job provenance')
                                 }
                             }
                             // Store the pulled docker image digest as 'buildinfo'
@@ -2316,16 +2348,85 @@ def buildScriptsAssemble(
                                     context.println "openjdk_build_pipeline: running exploded build in docker on Windows"
                                     context.echo("Switched to using non-default workspace path ${workspace}")
                                     context.println "openjdk_build_pipeline: building in windows docker image " + docker_image_target
-                                    context.ws(workspace) {
-                                        context.docker.image(docker_image_target).inside(buildConfig.DOCKER_ARGS+" "+dockerRunArg) {
-                                            buildScripts(
-                                                cleanWorkspace,
-                                                cleanWorkspaceAfter,
-                                                cleanWorkspaceBuildOutputAfter,
-                                                useAdoptShellScripts,
-                                                enableSigner,
-                                                envVars
+                                    // Windows image layers do not preserve the short names required by configure.
+                                    if (localWindowsTrial || managedWindowsImage) {
+                                        context.ws(workspace) {
+                                            def containerName = "dragonwell-jdk11-container-${context.env.BUILD_NUMBER}"
+                                            context.parallel(
+                                                initializeShortnames: { context.withEnv(["DRAGONWELL_BUILD_IMAGE=${docker_image_target}"]) { context.powershell(script: '''
+$ErrorActionPreference = 'Stop'
+$initialization = @'
+$ErrorActionPreference = 'Stop'
+foreach ($m in @(@('C:\\Program Files (x86)','PROGRA~2'),@('C:\\Program Files (x86)\\Microsoft Visual Studio','MICROS~1'),@('C:\\Program Files (x86)\\Windows Kits','WINDOW~1'))) {
+  $deadline = (Get-Date).AddSeconds(30)
+  do {
+    $short = (& C:\\cygwin64\\bin\\cygpath.exe -m -s $m[0] | Out-String).Trim()
+    if ($LASTEXITCODE -eq 0 -and !$short.Contains(' ')) { break }
+    Write-Output "Initializing short name for $($m[0])"
+    & fsutil.exe file setshortname $m[0] $m[1]
+    if ($LASTEXITCODE -eq 0) { break }
+    if ((Get-Date) -ge $deadline) { throw "Shortname initialization failed for $($m[0])" }
+    Start-Sleep -Seconds 2
+  } while ($true)
+}
+foreach ($p in @('C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools','C:\\Program Files (x86)\\Windows Kits\\10')) {
+  $short = (& C:\\cygwin64\\bin\\cygpath.exe -m -s $p | Out-String).Trim()
+  if ($LASTEXITCODE -ne 0 -or $short.Contains(' ')) { throw 'Invalid short path' }
+  Write-Output "RUNTIME_SHORT_PATH=$short"
+}
+[IO.File]::WriteAllText('C:\\dragonwell-shortnames-ready.txt','ready')
+'@
+$encodedInitialization = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($initialization))
+if ($env:COMPUTERNAME -ne 'iZvnhqj7vzslotZ') { throw 'Unexpected host' }
+$name = 'dragonwell-jdk11-container-' + $env:BUILD_NUMBER
+$docker = 'C:\\Program Files\\Docker\\docker.exe'
+$deadline = (Get-Date).AddSeconds(120)
+do {
+  $id = (& $docker ps --filter "name=^/$name$" --format '{{.ID}}' | Out-String).Trim()
+  if ($LASTEXITCODE -ne 0) { throw 'Docker query failed' }
+  if ($id) { break }
+  Start-Sleep -Seconds 2
+} while ((Get-Date) -lt $deadline)
+if (!$id -or $id.Contains("`n")) { throw 'Expected exactly one trial container' }
+$actualImage = (& $docker inspect --format '{{.Config.Image}}' $id | Out-String).Trim()
+$actualUser = (& $docker inspect --format '{{.Config.User}}' $id | Out-String).Trim()
+if ($actualImage -ne $env:DRAGONWELL_BUILD_IMAGE -or $actualUser -ne 'ContainerUser') { throw 'Unexpected container image or user' }
+& $docker exec --user ContainerAdministrator $id powershell.exe -NoProfile -NonInteractive -OutputFormat Text -EncodedCommand $encodedInitialization
+if ($LASTEXITCODE -ne 0) { throw 'Container initialization failed' }
+Write-Output 'HOST_SHORTNAME_INITIALIZATION_OK'
+''') } },
+                                                containerBuild: {
+                                                    context.docker.image(docker_image_target).inside(buildConfig.DOCKER_ARGS+" "+dockerRunArg+" --name "+containerName) {
+                                                        context.powershell(script: '''
+$ErrorActionPreference = 'Stop'
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -notmatch '\\\\ContainerUser$') { throw 'Build must run as ContainerUser' }
+$deadline = (Get-Date).AddSeconds(120)
+while (!(Test-Path 'C:\\dragonwell-shortnames-ready.txt')) {
+  if ((Get-Date) -ge $deadline) { throw 'Container initialization timed out' }
+  Start-Sleep -Seconds 2
+}
+$short = (& C:\\cygwin64\\bin\\cygpath.exe -m -s 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools' | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or $short.Contains(' ')) { throw 'Build user cannot resolve short path' }
+Write-Output "BUILD_USER_SHORT_PATH_OK=$short"
+''')
+                                                        buildScripts(cleanWorkspace, cleanWorkspaceAfter, cleanWorkspaceBuildOutputAfter, useAdoptShellScripts, enableSigner, envVars)
+                                                    }
+                                                },
+                                                failFast: true
                                             )
+                                        }
+                                    } else {
+                                        context.ws(workspace) {
+                                            context.docker.image(docker_image_target).inside(buildConfig.DOCKER_ARGS+" "+dockerRunArg) {
+                                                buildScripts(
+                                                    cleanWorkspace,
+                                                    cleanWorkspaceAfter,
+                                                    cleanWorkspaceBuildOutputAfter,
+                                                    useAdoptShellScripts,
+                                                    enableSigner,
+                                                    envVars
+                                                )
+                                            }
                                         }
                                     }
                                 } else {

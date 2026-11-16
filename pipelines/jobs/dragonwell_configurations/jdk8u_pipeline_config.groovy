@@ -41,14 +41,19 @@ class Config8 {
             x64Windows    : [
                     os                  : 'windows',
                     arch                : 'x64',
+                    dockerImage         : [dragonwell: 'docker.io/alibabadragonwelljdk/windows2022_build_image:latest'],
+                    dockerRegistry      : [dragonwell: ''],
+                    dockerCredential    : [dragonwell: 'dockerhub-alibabadragonwelljdk'],
+                    dockerArgs          : [dragonwell: '-e HOME=/cygdrive/c/Users/ContainerUser'],
+                    dockerNode          : [dragonwell: '"windows_2022rc_build4(47.76.90.84)"'],
                     additionalNodeLabels: [
                             hotspot   : 'win2012',
                             corretto  : 'win2012',
                             openj9    : 'win2012&&mingw-cygwin',
-                            dragonwell: 'win2012&&vs2017'
+                            dragonwell: 'win2022&&vs2022'
                     ],
                     buildArgs           : [
-                        'dragonwell'   : '--create-sbom'
+                        'dragonwell'   : '--create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                     ],
                     test                : 'default'
             ],

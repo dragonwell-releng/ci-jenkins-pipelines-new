@@ -46,6 +46,11 @@ class Config11 {
             x64Windows    : [
                     os                  : 'windows',
                     arch                : 'x64',
+                    dockerImage         : [dragonwell: 'docker.io/alibabadragonwelljdk/windows2022_build_image:latest'],
+                    dockerRegistry      : [dragonwell: ''],
+                    dockerCredential    : [dragonwell: 'dockerhub-alibabadragonwelljdk'],
+                    dockerArgs          : [dragonwell: '-e HOME=/cygdrive/c/Users/ContainerUser'],
+                    dockerNode          : [dragonwell: '"windows_2022rc_build4(47.76.90.84)"'],
                     additionalNodeLabels: [
                             hotspot   : 'win2012',
                             openj9    : 'win2012&&vs2017',
@@ -53,7 +58,7 @@ class Config11 {
                     ],
                     buildArgs           : [
                             hotspot: '--jvm-variant client,server',
-                            dragonwell : '--create-sbom'
+                            dragonwell : '--jvm-variant server --create-sbom --use-adoptium-devkit vs2022_redist_14.40.33807_10.0.26100.1742'
                     ],
                     test                : [
                             nightly: ['sanity.functional', 'extended.functional', 'special.functional', 'sanity.openjdk', 'extended.openjdk', 'sanity.system', 'extended.system', 'sanity.perf', 'extended.perf'],
