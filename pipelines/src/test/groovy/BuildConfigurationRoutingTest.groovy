@@ -41,6 +41,18 @@ class BuildConfigurationRoutingTest {
             [arch: 'x64', additionalNodeLabels: 'custom'], 'dragonwell').toString())
     }
 
+    @Test void windowsContainerLabelsRetainNativeVariantDefaults() {
+        Map platform = [arch: 'x64', additionalNodeLabels: [
+            default: 'win2022&&vs2022', dragonwell: 'dragonwell-windows-container'
+        ]]
+        assertEquals('dragonwell-windows-container&&build',
+            builder.formAdditionalBuildNodeLabels(platform, 'dragonwell').toString())
+        assertEquals('win2022&&vs2022&&build',
+            builder.formAdditionalBuildNodeLabels(platform, 'temurin').toString())
+        assertEquals('win2022&&vs2022&&build',
+            builder.formAdditionalBuildNodeLabels(platform, 'openj9').toString())
+    }
+
     @Test void variantSpecificCrossBuildSelectsHostNodes() {
         Map platform = [arch: 'riscv64', crossCompile: [dragonwell: 'x64']]
         assertEquals('build', builder.formAdditionalBuildNodeLabels(platform, 'dragonwell').toString())

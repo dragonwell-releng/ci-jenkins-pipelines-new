@@ -72,8 +72,11 @@ class Config21 {
                 dockerRegistry      : [dragonwell: ''],
                 dockerCredential    : [dragonwell: 'dockerhub-alibabadragonwelljdk'],
                 dockerArgs          : [dragonwell: '-e HOME=/cygdrive/c/Users/ContainerUser'],
-                dockerNode          : [dragonwell: '"windows_2022rc_build4(47.76.90.84)"'],
-                additionalNodeLabels: 'win2022&&vs2022',
+                dockerNode          : [dragonwell: 'dockerBuild'],
+                additionalNodeLabels: [
+                        default   : 'win2022&&vs2022',
+                        dragonwell: 'dragonwell-windows-container'
+                ],
                 test                : 'default',
                 reproducibleCompare : [
                         'temurin'   : true

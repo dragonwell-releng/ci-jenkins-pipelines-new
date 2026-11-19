@@ -2377,9 +2377,8 @@ foreach ($p in @('C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildT
 [IO.File]::WriteAllText('C:\\dragonwell-shortnames-ready.txt','ready')
 '@
 $encodedInitialization = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($initialization))
-if ($env:COMPUTERNAME -ne 'iZvnhqj7vzslotZ') { throw 'Unexpected host' }
 $name = 'dragonwell-jdk11-container-' + $env:BUILD_NUMBER
-$docker = 'C:\\Program Files\\Docker\\docker.exe'
+$docker = (Get-Command docker.exe -ErrorAction Stop).Source
 $deadline = (Get-Date).AddSeconds(120)
 do {
   $id = (& $docker ps --filter "name=^/$name$" --format '{{.ID}}' | Out-String).Trim()
