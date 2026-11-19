@@ -589,7 +589,8 @@ class Builder implements Serializable {
             def additionalNodeLabels
 
             if (isMap(configuration.additionalNodeLabels)) {
-                additionalNodeLabels = (configuration.additionalNodeLabels as Map<String, ?>).get(variant)
+                additionalNodeLabels = (configuration.additionalNodeLabels as Map<String, ?>).getOrDefault(
+                        variant, configuration.additionalNodeLabels.get('default'))
             } else {
                 additionalNodeLabels = configuration.additionalNodeLabels
             }
