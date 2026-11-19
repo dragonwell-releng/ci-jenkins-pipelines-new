@@ -2352,8 +2352,18 @@ def buildScriptsAssemble(
                                     if (localWindowsTrial || managedWindowsImage) {
                                         context.ws(workspace) {
                                             def containerName = "dragonwell-jdk11-container-${context.env.BUILD_NUMBER}"
+                                            def initializationLabel = ''
+                                            if (managedWindowsImage && buildConfig.VARIANT == 'dragonwell' &&
+                                                    buildConfig.JAVA_TO_BUILD == 'jdk21u' &&
+                                                    buildConfig.DOCKER_NODE == 'dragonwell-windows-container') {
+                                                initializationLabel = buildConfig.DOCKER_NODE
+                                            }
+                                            def initializationEnv = [
+                                                "DRAGONWELL_BUILD_IMAGE=${docker_image_target}",
+                                                "DRAGONWELL_SHORTNAME_INIT_LABEL=${initializationLabel}"
+                                            ]
                                             context.parallel(
-                                                initializeShortnames: { context.withEnv(["DRAGONWELL_BUILD_IMAGE=${docker_image_target}"]) { context.powershell(script: '''
+                                                initializeShortnames: { context.withEnv(initializationEnv) { context.powershell(script: '''
 $ErrorActionPreference = 'Stop'
 $initialization = @'
 $ErrorActionPreference = 'Stop'
@@ -2377,7 +2387,13 @@ foreach ($p in @('C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildT
 [IO.File]::WriteAllText('C:\\dragonwell-shortnames-ready.txt','ready')
 '@
 $encodedInitialization = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($initialization))
-if ($env:COMPUTERNAME -ne 'iZvnhqj7vzslotZ') { throw 'Unexpected host' }
+if ($env:DRAGONWELL_SHORTNAME_INIT_LABEL) {
+  if (($env:NODE_LABELS -split ' ') -cnotcontains $env:DRAGONWELL_SHORTNAME_INIT_LABEL) {
+    throw 'Unexpected Windows container agent label'
+  }
+} elseif ($env:COMPUTERNAME -ne 'iZvnhqj7vzslotZ') {
+  throw 'Unexpected host'
+}
 $name = 'dragonwell-jdk11-container-' + $env:BUILD_NUMBER
 $docker = 'C:\\Program Files\\Docker\\docker.exe'
 $deadline = (Get-Date).AddSeconds(120)
