@@ -50,11 +50,11 @@ class Config11 {
                     dockerRegistry      : [dragonwell: ''],
                     dockerCredential    : [dragonwell: 'dockerhub-alibabadragonwelljdk'],
                     dockerArgs          : [dragonwell: '-e HOME=/cygdrive/c/Users/ContainerUser'],
-                    dockerNode          : [dragonwell: '"windows_2022rc_build4(47.76.90.84)"'],
+                    dockerNode          : [dragonwell: 'dockerBuild'],
                     additionalNodeLabels: [
                             hotspot   : 'win2012',
                             openj9    : 'win2012&&vs2017',
-                            dragonwell: 'win2022&&vs2022'
+                            dragonwell: 'dragonwell-windows-container'
                     ],
                     buildArgs           : [
                             hotspot: '--jvm-variant client,server',
